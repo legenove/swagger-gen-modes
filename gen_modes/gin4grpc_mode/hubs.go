@@ -28,13 +28,16 @@ func (p *Gin4GrpcMode) genHubs() {
 	for _, s := range p.services {
 		g.P("func ", s.FuncName, "(c *gin.Context) (int, interface{}) {")
 		g.P("    in := new(pb.", s.ReqName, ")")
-		g.P("    headers := schemas.GetParams(c, \"", s.FuncName, "\", in)")
+		g.P("    headers, err := schemas.GetParams(c, \"", s.FuncName, "\", in)")
 		g.P("    // header设置")
 		g.P("    ctx := metadata.NewOutgoingContext(context.Background(), headers)")
-		g.P("    res, err := server.", s.FuncName ,"(ctx, in)")
+		g.P("    res, err := server.", s.FuncName, "(ctx, in)")
 		g.P("    if err != nil {")
 		g.P("        panic(err)")
 		g.P("    }")
+		g.P(`    if res == nil {
+        return 200, nil
+    }`)
 		if s.ReplyName == "CommonReply" {
 			g.P("    return int(res.HttpCode), nil")
 		} else {
