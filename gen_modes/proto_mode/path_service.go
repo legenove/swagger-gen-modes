@@ -2,6 +2,7 @@ package proto_mode
 
 import (
 	"fmt"
+	"github.com/legenove/swagger-gen-modes/gen_modes/common"
 	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/spec4pb"
 	"github.com/legenove/utils"
@@ -9,45 +10,11 @@ import (
 	"sync"
 )
 
-var Methods = []string{"Get", "Put", "Post", "Delete", "Options", "Head", "Patch"}
-
-func getOptionsFromPathItemByMethod(pathItem spec4pb.PathItem, method string) *spec4pb.Operation {
-	switch strings.ToLower(method) {
-	case "get":
-		return pathItem.Get
-	case "post":
-		return pathItem.Post
-	case "put":
-		return pathItem.Put
-	case "delete":
-		return pathItem.Delete
-	case "options":
-		return pathItem.Options
-	case "head":
-		return pathItem.Head
-	case "patch":
-		return pathItem.Patch
-	default:
-		return nil
-	}
-}
-
-func pathToName(pth string) string {
-	pth = strings.ReplaceAll(pth, "_", "/")
-	pth = strings.ReplaceAll(pth, "{", "/")
-	pth = strings.ReplaceAll(pth, "}", "/")
-	ps := strings.Split(pth, "/")
-	for i := range ps {
-		ps[i] = strings.Title(ps[i])
-	}
-	return utils.ConcatenateStrings(ps...)
-}
-
 func (p *ProtoMode) prepareServices() {
 	wg := sync.WaitGroup{}
 	for pth, pathItem := range p.swaggerPub.Swagger.Paths.Paths {
-		for _, method := range Methods {
-			operation := getOptionsFromPathItemByMethod(pathItem, method)
+		for _, method := range common.Methods {
+			operation := common.GetOptionsFromPathItemByMethod(pathItem, method)
 			if operation == nil {
 				continue
 			}
@@ -62,7 +29,7 @@ func (p *ProtoMode) prepareServices() {
 }
 
 func (p *ProtoMode) prepareService(pth, method string, operation *spec4pb.Operation) {
-	serviceName := pathToName(pth)
+	serviceName := common.UriPathToName(pth)
 	g := &swagger_gen.BufGenerator{}
 	g.P("  // ", pth, " | ", method)
 	g.Pl("  // operationId: ", operation.ID)

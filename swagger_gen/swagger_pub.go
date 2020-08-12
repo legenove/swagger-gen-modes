@@ -9,9 +9,10 @@ var swaggerSortKeys = []string{"swagger", "info", "schemes", "tags", "externalDo
 	"basePath", "paths", "definitions", "securityDefinitions"}
 
 type SwaggerPub struct {
-	Swagger     *spec4pb.Swagger
-	PackageName string
-	Md5         string
+	Swagger       *spec4pb.Swagger
+	PackageName   string
+	GoPackageName string
+	Md5           string
 }
 
 func (p *SwaggerPub) ToYaml() ([]byte, error) {

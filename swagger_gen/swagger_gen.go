@@ -16,6 +16,7 @@ import (
 type SwaggerGenerator struct {
 	sync.RWMutex
 	outPath        string                      // 输出路径
+	goPackageName  string                      // go package 包名
 	SourceFilePath []string                    // 原始swagger文件地址
 	swaggers       map[string]*spec4pb.Swagger // swagger对象
 	genMode        map[string]ModeGenInterface // 需要生成模版的方法
@@ -31,6 +32,11 @@ func NewSwaggerGenerator(outPath string, filePath ...string) (*SwaggerGenerator,
 	o.genMode = make(map[string]ModeGenInterface, 16)
 	err := o.LoadSource(filePath...)
 	return o, err
+}
+
+func (s *SwaggerGenerator) SetGoPackage(packagePath string) *SwaggerGenerator {
+	s.goPackageName = packagePath
+	return s
 }
 
 func (s *SwaggerGenerator) LoadSource(filePath ...string) error {
@@ -108,9 +114,10 @@ func (s *SwaggerGenerator) Run() error {
 				}()
 				fname := filepath.Base(fpath)
 				pub := &SwaggerPub{
-					Swagger:     swagger,
-					PackageName: strings.Split(fname, ".")[0],
-					Md5:         m,
+					Swagger:       swagger,
+					PackageName:   strings.Split(fname, ".")[0],
+					Md5:           m,
+					GoPackageName: s.goPackageName,
 				}
 				err = modI.GenFile(s.outPath, pub)
 				if err != nil {
