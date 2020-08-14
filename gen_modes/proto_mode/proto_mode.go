@@ -27,7 +27,6 @@ type ProtoMode struct {
 
 func (p *ProtoMode) GenFile(outpath string, swaggerPub *swagger_gen.SwaggerPub) error {
 	p.swaggerPub = swaggerPub
-
 	p.messageGenOpt = SortBufGenOpts{}
 	p.serviceGenOpt = SortBufGenOpts{}
 	p.imports = map[string]bool{}

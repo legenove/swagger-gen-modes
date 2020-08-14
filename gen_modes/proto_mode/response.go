@@ -2,8 +2,9 @@ package proto_mode
 
 import (
 	"fmt"
-	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/spec4pb"
+	"github.com/legenove/swagger-gen-modes/gen_modes/common"
+	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/utils"
 )
 
@@ -25,7 +26,7 @@ func (p *ProtoMode) analyseReply(name string, method, part string, response *spe
 	if schema == nil {
 		return false
 	}
-	location := fmt.Sprintf("%d:%s", OptLocationMap[part], name)
+	location := fmt.Sprintf("%d:%s", common.OptLocationMap[part], name)
 	name = method + name
 	messageName := utils.ConcatenateStrings(name, part)
 	g := &swagger_gen.BufGenerator{}
@@ -35,17 +36,16 @@ func (p *ProtoMode) analyseReply(name string, method, part string, response *spe
 	g.P("  string errorMsg = 3;")
 	g.Pl("  ")
 	GPSchema(g, schema, method, location, name+part+"Data", "", p)
-	GPFieldEnd(g,"data", 15, schema.Description)
+	GPFieldEnd(g, "data", 15, schema.Description)
 	g.P("}")
 	p.Lock()
 	defer p.Unlock()
 	p.messageGenOpt = append(p.messageGenOpt,
 		&BufGenOpt{
 			location,
-			OptMethodMap[method],
+			common.OptMethodMap[method],
 			messageName,
 			g},
 	)
 	return true
 }
-

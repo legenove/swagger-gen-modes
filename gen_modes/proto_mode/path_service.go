@@ -57,8 +57,8 @@ func (p *ProtoMode) prepareService(pth, method string, operation *spec4pb.Operat
 	defer p.Unlock()
 	p.serviceGenOpt = append(p.serviceGenOpt,
 		&BufGenOpt{
-			fmt.Sprintf("%d:%s", OptLocationMap["service"], serviceName),
-			OptMethodMap[method],
+			fmt.Sprintf("%d:%s", common.OptLocationMap["service"], serviceName),
+			common.OptMethodMap[method],
 			method + serviceName,
 		g},
 	)

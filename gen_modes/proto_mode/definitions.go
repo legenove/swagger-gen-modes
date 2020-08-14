@@ -2,21 +2,20 @@ package proto_mode
 
 import (
 	"fmt"
+	"github.com/legenove/swagger-gen-modes/gen_modes/common"
 	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/spec4pb"
 	"sort"
 	"strings"
 )
 
-const DefinitionPreName = "Definitions"
-
 func (p *ProtoMode) prepareDefinitions(definitions spec4pb.Definitions) {
 
 	for name, definition := range definitions {
 
 		if len(definition.Type) == 0 || definition.Type.Contains("object") {
-			locations := fmt.Sprintf("%d%s",OptLocationMap[DefinitionPreName], strings.Title(name))
-			GPProperties(p, &definition, "Get", locations, DefinitionPreName+strings.Title(name))
+			locations := fmt.Sprintf("%d%s",common.OptLocationMap[common.DefinitionPreName], strings.Title(name))
+			GPProperties(p, &definition, "Get", locations, common.DefinitionPreName+strings.Title(name))
 		} else {
 			panic(" definitions " + name + " must object")
 		}
@@ -62,7 +61,7 @@ func GPProperties(p *ProtoMode, definition *spec4pb.Schema, method, locations, n
 	p.messageGenOpt = append(p.messageGenOpt,
 		&BufGenOpt{
 			locations,
-			OptMethodMap[method],
+			common.OptMethodMap[method],
 			name,
 			g},
 	)

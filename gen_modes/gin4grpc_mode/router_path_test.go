@@ -22,7 +22,7 @@ func TestRouterPath(t *testing.T) {
 	}
 
 	for i := range in {
-		s := &service{pathName: in[i]}
+		s := &service{PathName: in[i]}
 		res := s.getRouterPath()
 		if res == out[i] {
 			fmt.Println("true: ", i)

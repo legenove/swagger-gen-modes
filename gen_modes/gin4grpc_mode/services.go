@@ -3,6 +3,7 @@ package gin4grpc_mode
 import (
 	"github.com/legenove/spec4pb"
 	"github.com/legenove/swagger-gen-modes/gen_modes/common"
+	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/utils"
 	"regexp"
 	"sort"
@@ -109,4 +110,47 @@ func (p *Gin4GrpcMode) analyseReply(response *spec4pb.Responses) bool {
 		}
 	}
 	return false
+}
+
+func (p *Gin4GrpcMode) genServices() {
+	g := swagger_gen.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/services", p.swaggerPub.Md5)
+	g.SetFilename("base.go")
+	g.P("package services")
+	g.P()
+	g.P("import (")
+	p.GenImportPb(g)
+	g.P(")")
+	g.P()
+	g.P("//server is used to implement ", p.swaggerPub.PackageName, ".", strings.Title(p.swaggerPub.PackageName), "Server.")
+	g.P("type ", p.swaggerPub.PackageName, "Server struct {")
+	g.P("  pb.Unimplemented", strings.Title(p.swaggerPub.PackageName), "Server")
+	g.P("}")
+	g.P("func NewServer() *",p.swaggerPub.PackageName,"Server{")
+	g.P("    return &",p.swaggerPub.PackageName,"Server{}")
+	g.P("}")
+	g.GenFile()
+	for _, s := range p.services {
+		g = swagger_gen.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/services", p.swaggerPub.Md5)
+		g.SetFilename(s.FuncName + ".go")
+		g.P("package services")
+		g.P()
+		g.P("import (")
+		g.P("    \"context\"")
+		p.GenImportPb(g)
+		g.P("    \"fmt\"")
+		g.P(")")
+		g.P()
+		//func (*V1Server) DeleteTestPetId(ctx context.Context, req *pb.DeleteTestPetIdRequest) (*pb.CommonReply, error) {
+		//
+		//	return nil, nil
+		//}
+
+		g.P("func (*", p.swaggerPub.PackageName, "Server) ", s.FuncName,
+			"(ctx context.Context, req *pb.", s.ReqName, ") (*pb.", s.ReplyName, ", error) {")
+		g.P("    fmt.Println(\"in\", req)")
+		g.P("    return nil, nil")
+		g.P("}")
+		g.GenFile()
+	}
+
 }

@@ -1,6 +1,7 @@
 package proto_mode
 
 import (
+	"github.com/legenove/swagger-gen-modes/gen_modes/common"
 	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/spec4pb"
 )
@@ -21,19 +22,8 @@ func GPSchema(g swagger_gen.BufGenInterface, schema *spec4pb.Schema, method, loc
 		g.Pl(",")
 	}
 	// allof anyof oneof 禁止使用
-	var _type string
-	if len(schema.Type) > 0 {
-		_type = schema.Type[0]
-	}
+	_type := common.GetPBType(schema)
 	switch _type {
-	case "string":
-		GPString(g)
-	case "integer":
-		GPInt(g, schema.Format, schema.Minimum)
-	case "number":
-		GPNumber(g, schema.Format)
-	case "boolean":
-		GPBoolean(g)
 	case "array":
 		if inMap == "key" {
 			panic("map key cant be array" + ppath)
@@ -46,12 +36,11 @@ func GPSchema(g swagger_gen.BufGenInterface, schema *spec4pb.Schema, method, loc
 			//GPNewArraySchema()
 		}
 		//GPItem(g, name, fieldNumber, schema.Items, ppath+strings.Title(name))
-	default:
+	case "object":
 		if inMap == "key" {
 			panic("map key cant be struct" + ppath)
 		}
 		if schema.Ref.GetURL() == nil {
-			// todo 有可能是 pro
 			if len(schema.Properties) != 0 {
 				g.Pl(ppath)
 				GPProperties(p, schema, method, locations ,ppath)
@@ -59,8 +48,10 @@ func GPSchema(g swagger_gen.BufGenInterface, schema *spec4pb.Schema, method, loc
 				g.Pl(p.getAnyProto())
 			}
 		} else {
-			g.Pl(FormatRefUrl(schema.Ref.GetURL().String()))
+			g.Pl(common.FormatRefUrl(schema.Ref.GetURL().String()))
 		}
+	default:
+		g.Pl(_type)
 	}
 	if isMap {
 		g.Pl(">")

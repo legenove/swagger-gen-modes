@@ -6,23 +6,6 @@ import (
 	"sort"
 )
 
-var OptLocationMap = map[string]int{
-	"Service":     0,
-	"Request":     1,
-	"Reply":       2,
-	"Definitions": 3,
-}
-
-var OptMethodMap = map[string]int{
-	"Get":     0,
-	"Post":    1,
-	"Put":     2,
-	"Delete":  4,
-	"Options": 5,
-	"Head":    6,
-	"Patch":   7,
-}
-
 type BufGenOpt struct {
 	Locations string // reply definations request
 	Method    int    // method

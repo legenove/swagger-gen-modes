@@ -2,6 +2,7 @@ package proto_mode
 
 import (
 	"fmt"
+	"github.com/legenove/swagger-gen-modes/gen_modes/common"
 	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/spec4pb"
 	"github.com/legenove/utils"
@@ -26,7 +27,7 @@ func (p *ProtoMode) analyseParams(name string, method, part string, params []spe
 	if !res {
 		return false
 	}
-	location := fmt.Sprintf("%d:%s", OptLocationMap[part], utils.ConcatenateStrings(name, part))
+	location := fmt.Sprintf("%d:%s", common.OptLocationMap[part], utils.ConcatenateStrings(name, part))
 	messageName := utils.ConcatenateStrings(method, name, part)
 	g := &swagger_gen.BufGenerator{}
 	g.P("message ", messageName, " {")
@@ -49,7 +50,7 @@ func (p *ProtoMode) analyseParams(name string, method, part string, params []spe
 	p.messageGenOpt = append(p.messageGenOpt,
 		&BufGenOpt{
 			location,
-			OptMethodMap[method],
+			common.OptMethodMap[method],
 			messageName,
 			g},
 	)
@@ -58,27 +59,20 @@ func (p *ProtoMode) analyseParams(name string, method, part string, params []spe
 
 func GPParam(g swagger_gen.BufGenInterface, param spec4pb.Parameter, method, locations, ppath string, p *ProtoMode) {
 	g.Pl("  ")
-	switch param.Type {
-	case "string":
-		GPString(g)
-	case "integer":
-		GPInt(g, param.Format, param.Minimum)
-	case "number":
-		GPNumber(g, param.Format)
-	case "boolean":
-		GPBoolean(g)
+	_type := common.GetPBType(param)
+	switch _type {
 	case "array":
 		g.Pl("repeated ")
 		GPItem(g, param.Items, ppath)
-	case "file":
-		GPFile(g)
-	default:
+	case "object":
 		if param.Schema != nil {
 			GPSchema(g, param.Schema, method, locations, ppath+strings.Title(param.Name), "", p)
 		} else {
 			// 否则是any
 			g.Pl(p.getAnyProto())
 		}
+	default:
+		g.Pl(_type)
 	}
 	GPFieldEnd(g, param.Name, param.FieldNumber, param.Description)
 }
@@ -101,19 +95,14 @@ func FormatRefUrl(s string) string {
 }
 
 func GPItem(g swagger_gen.BufGenInterface, items *spec4pb.Items, ppath string) {
-	switch items.Type {
-	case "string":
-		GPString(g)
-	case "integer":
-		GPInt(g, items.Format, items.Minimum)
-	case "number":
-		GPNumber(g, items.Format)
-	case "boolean":
-		GPBoolean(g)
+	_type := common.GetPBType(items)
+	switch _type {
 	case "array":
 		g.Pl("repeated ")
 		GPItem(g, items.Items, ppath)
-	default:
+	case "object":
 		panic("+++-- GPItem, default error" + ppath)
+	default:
+		g.Pl(_type)
 	}
 }
