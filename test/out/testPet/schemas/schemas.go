@@ -1,251 +1,4 @@
-package gin4grpc_mode
-
-import (
-	"github.com/json-iterator/go"
-	"github.com/legenove/spec4pb"
-	"github.com/legenove/swagger-gen-modes/gen_modes/common"
-	"github.com/legenove/swagger-gen-modes/mode_pub"
-	"sort"
-)
-
-func (p *Gin4GrpcMode) genSchemas() {
-	g := mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/schemas", p.swaggerPub.Md5)
-	g.SetFilename("schemas.go")
-	g.P(schemaHeader)
-	g.P()
-	g.P("var schemaString = `{")
-	for i, s := range p.services {
-		jb, _ := jsoniter.Marshal(s.Params)
-		g.Pl("    \"", s.FuncName, "\" : ", string(jb))
-		if i < len(p.services)-1 {
-			g.Pl(",")
-		}
-		g.P()
-	}
-	g.P("}`")
-	g.P(schemaMainBody)
-	g.GenFile()
-
-	for _, s := range p.services {
-		g = mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/schemas", p.swaggerPub.Md5)
-		g.SetFilename("schemas" + s.FuncName + ".go")
-		fields := prepareParams(s.Params)
-		g.P("package schemas")
-		g.P()
-		g.P("import (")
-		g.P("    \"github.com/gin-gonic/gin\"")
-		p.GenImportPb(g)
-		fields.ImportsG(g)
-		g.P(")")
-		g.P()
-		g.P("func Get", s.FuncName, "Params(c *gin.Context, in *pb.", s.ReqName, ") (map[string][]string, error) {")
-		fields.MergeG(g)
-		g.P("    return c.Request.Header, nil")
-		g.P("}")
-		g.GenFile()
-	}
-}
-
-type paramField struct {
-	fieldName string
-	g         mode_pub.BufGenInterface
-	imports   map[string]bool
-}
-
-type sortParamFields []*paramField
-
-func (s sortParamFields) Less(i, j int) bool {
-	return s[i].fieldName < s[j].fieldName
-}
-func (s sortParamFields) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
-func (s sortParamFields) Len() int      { return len(s) }
-func (s sortParamFields) MergeG(g mode_pub.BufGenInterface) {
-	sort.Sort(s)
-	for _, j := range s {
-		if j != nil && len(j.g.GetBytes()) > 0 {
-			g.P(string(j.g.GetBytes()))
-		}
-	}
-}
-func (s sortParamFields) ImportsG(g mode_pub.BufGenInterface) {
-	imports := map[string]bool{}
-	for _, j := range s {
-		for i := range j.imports {
-			if _, ok := imports[i]; ok {
-				continue
-			}
-			imports[i] = true
-			g.P("    \"", i, "\"")
-		}
-	}
-}
-
-func prepareParams(params []spec4pb.Parameter) sortParamFields {
-	var fields = make(sortParamFields, 0, len(params))
-	for _, p := range params {
-		field := prepareParam(p)
-		if field == nil {
-			continue
-		}
-		fields = append(fields, field)
-	}
-	return fields
-}
-
-func prepareParam(param spec4pb.Parameter) *paramField {
-	field := &paramField{param.Name, &mode_pub.BufGenerator{}, map[string]bool{}}
-	_type := common.GetGoType(param)
-	goName := common.GetGoName(param.Name)
-	var valType string
-	switch _type {
-	case "array":
-		valType = "[]" + GetItemType(param.Items)
-	case "struct":
-		if param.Schema != nil && param.Schema.Ref.GetURL() != nil {
-			valType = "*pb." + common.GetSchemaName(param.Schema)
-		} else {
-			valType = "interface{}"
-		}
-	default:
-		valType = _type
-	}
-	switch param.In {
-	case "path":
-		getPathVal(field, goName, valType, _type, param)
-	case "query":
-		getQueryVal(field, goName, valType, _type, param)
-	case "formData":
-		getFormDataVal(field, goName, valType, _type, param)
-	case "body":
-		getBodyVal(field, goName, valType, _type, param)
-	case "header":
-		return nil
-	default:
-		return nil
-	}
-	return field
-}
-
-func getBodyVal(field *paramField, goName, valType, _type string, param spec4pb.Parameter) {
-	fieldMaps := map[string]interface{}{"goName": goName, "name": param.Name, "valType": valType}
-	field.g.P(FormatByKey(`    // body {{.goName}}
-	var val {{.valType}}
-	err := c.ShouldBind(&val)
-	if err != nil {
-		return nil, err
-	}
-	in.{{.goName}} = val`, fieldMaps))
-}
-
-func getPathVal(field *paramField, goName, valType, _type string, param spec4pb.Parameter) {
-	fieldMaps := map[string]interface{}{"goName": goName, "name": param.Name, "valType": valType}
-	field.g.P(FormatByKey(`    // path {{.goName}}
-	var val{{.goName}} {{.valType}}
-	if val, ok := c.Params.Get("{{.name}}"); ok {
-		_v, err := setWithKind("{{.valType}}", val)
-		if err != nil {
-			return nil, errors.New("{{.name}} value not {{.valType}}")
-		}
-		val{{.goName}}, ok = _v.({{.valType}})
-		if !ok {
-			return nil, errors.New("{{.name}} value not {{.valType}}")
-		}
-	} else {
-		return nil, errors.New("{{.name}} required")
-	}`, fieldMaps))
-	addParamsValidate(field, goName, valType, _type, param)
-	field.g.P(FormatByKey("    in.{{.goName}} = val{{.goName}}", fieldMaps))
-	field.imports["errors"] = true
-}
-
-func getQueryVal(field *paramField, goName, valType, _type string, param spec4pb.Parameter) {
-	fieldMaps := map[string]interface{}{"goName": goName, "name": param.Name, "valType": valType, "subType": valType[2:]}
-	field.g.P(FormatByKey(`    // query {{.goName}}
-	var val{{.goName}} {{.valType}}
-	if val, ok := c.GetQueryArray("{{.name}}"); ok {`, fieldMaps))
-	if _type == "array" {
-		field.g.Pl(FormatByKey(`        val{{.goName}} = make({{.valType}}, len(val))
-        for i, v := range val {
-            err := setWithKind("{{.subType}}", val[i], &val{{.goName}}[i])
-		    if err != nil {
-				return nil, errors.New("{{.name}} value not {{.valType}}")
-			}
-        }
-	}`, fieldMaps))
-	} else {
-		field.g.Pl(FormatByKey(`		_v, err := setWithKind("{{.valType}}", val[0])
-		if err != nil {
-			return nil, errors.New("{{.name}} value not {{.valType}}")
-		}
-		val{{.goName}}, ok = _v.({{.valType}})
-		if !ok {
-			return nil, errors.New("{{.name}} value not {{.valType}}")
-		}
-	}`, fieldMaps))
-	}
-	if param.Default == nil && param.Required == true {
-		field.g.P(" else {")
-		field.g.P("        return nil, errors.New(\"" + param.Name + " required\")")
-		field.g.P("    }")
-	} else {
-		field.g.P()
-	}
-	addParamsValidate(field, goName, valType, _type, param)
-	field.g.P(FormatByKey("    in.{{.goName}} = val{{.goName}}", fieldMaps))
-	field.imports["errors"] = true
-}
-
-func getFormDataVal(field *paramField, goName, valType, _type string, param spec4pb.Parameter) {
-	fieldMaps := map[string]interface{}{"goName": goName, "name": param.Name, "valType": valType, "subType": valType[2:]}
-	field.g.P(FormatByKey(`    // formData {{.goName}}
-	var val{{.goName}} {{.valType}}
-	if val, ok := c.GetPostFormArray("{{.name}}"); ok {`, fieldMaps))
-	if _type == "array" {
-		field.g.Pl(FormatByKey(`        val{{.goName}} = make({{.valType}}, len(val))
-        for i := range val {
-            _v, err := setWithKind("{{.subType}}", val[i])
-		    if err != nil {
-				return nil, errors.New("{{.name}} value not {{.valType}}")
-			}
-			&val{{.goName}}[i] = _v.({{.valType}})
-        }
-	}`, fieldMaps))
-	} else {
-		field.g.Pl(FormatByKey(`		_v, err := setWithKind("{{.valType}}", val[0])
-		if err != nil {
-			return nil, errors.New("{{.name}} value not {{.valType}}")
-		}
-		val{{.goName}}, ok = _v.({{.valType}})
-		if !ok {
-			return nil, errors.New("{{.name}} value not {{.valType}}")
-		}
-	}`, fieldMaps))
-	}
-	if param.Default == nil && param.Required == true {
-		field.g.P(" else {")
-		field.g.P("        return nil, errors.New(\"" + param.Name + " required\")")
-		field.g.P("    }")
-	} else {
-		field.g.P()
-	}
-	addParamsValidate(field, goName, valType, _type, param)
-	field.g.P(FormatByKey("    in.{{.goName}} = val{{.goName}}", fieldMaps))
-	field.imports["errors"] = true
-}
-
-func GetItemType(items *spec4pb.Items) string {
-	_type := common.GetPBType(items)
-	switch _type {
-	case "array":
-		panic("+++-- GPItem, default error")
-	case "object":
-		panic("+++-- GPItem, default error")
-	default:
-		return _type
-	}
-}
-
-var schemaHeader = `/*
+/*
 ### DO NOT CHANGE THIS FILE
 ### The code is auto generated, your change will be overwritten by
 ### code generating.
@@ -262,9 +15,31 @@ import (
 	"strconv"
 	"strings"
 	"time"
-)`
+)
 
-var schemaMainBody = `
+var schemaString = `{
+    "PostPet" : [{"fieldNumber":1,"description":"Pet object that needs to be added to the store","name":"body","in":"body","required":true,"schema":{"$ref":"#/definitions/Pet"}}],
+    "PutPet" : [{"fieldNumber":1,"description":"Pet object that needs to be added to the store","name":"pet","in":"body","required":true,"schema":{"$ref":"#/definitions/Pet"}}],
+    "GetPetFindByStatus" : [{"type":"array","fieldNumber":1,"items":{"enum":["available","pending","sold"],"type":"string","default":"available"},"collectionFormat":"multi","description":"Status values that need to be considered for filter","name":"status","in":"query","required":true}],
+    "GetPetFindByTags" : [{"type":"array","fieldNumber":1,"items":{"type":"string"},"collectionFormat":"multi","description":"Tags to filter by","name":"tags","in":"query","required":true}],
+    "DeletePetPetId" : [{"type":"integer","fieldNumber":1,"format":"int64","description":"Pet id to delete","name":"petId","in":"path","required":true}],
+    "GetPetPetId" : [{"type":"integer","fieldNumber":1,"format":"int64","description":"ID of pet to return","name":"petId","in":"path","required":true}],
+    "PostPetPetId" : [{"type":"integer","fieldNumber":1,"format":"int64","description":"ID of pet that needs to be updated","name":"petId","in":"path","required":true},{"type":"string","fieldNumber":2,"description":"Updated name of the pet","name":"name","in":"formData"},{"type":"string","fieldNumber":3,"description":"Updated status of the pet","name":"status","in":"formData"}],
+    "PostPetPetIdUploadImage" : [{"type":"integer","fieldNumber":1,"format":"int64","description":"ID of pet to update","name":"petId","in":"path","required":true},{"type":"string","fieldNumber":2,"description":"Additional data to pass to server","name":"additionalMetadata","in":"formData"},{"type":"file","fieldNumber":3,"description":"file to upload","name":"file","in":"formData"}],
+    "GetStoreInventory" : null,
+    "PostStoreOrder" : [{"fieldNumber":1,"description":"order placed for purchasing the pet","name":"body","in":"body","required":true,"schema":{"$ref":"#/definitions/Order"}}],
+    "DeleteStoreOrderOrderId" : [{"minimum":1,"type":"integer","fieldNumber":1,"format":"int64","description":"ID of the order that needs to be deleted","name":"orderId","in":"path","required":true}],
+    "GetStoreOrderOrderId" : [{"maximum":10,"minimum":1,"type":"integer","fieldNumber":1,"format":"int64","description":"ID of pet that needs to be fetched","name":"orderId","in":"path","required":true}],
+    "PostUser" : [{"fieldNumber":1,"description":"Created user object","name":"body","in":"body","required":true,"schema":{"$ref":"#/definitions/User"}}],
+    "PostUserCreateWithArray" : [{"fieldNumber":1,"description":"List of user object","name":"body","in":"body","required":true,"schema":{"type":"array","items":{"$ref":"#/definitions/User"}}}],
+    "PostUserCreateWithList" : [{"fieldNumber":1,"description":"List of user object","name":"body","in":"body","required":true,"schema":{"type":"array","items":{"$ref":"#/definitions/User"}}}],
+    "GetUserLogin" : [{"type":"string","fieldNumber":1,"description":"The user name for login","name":"username","in":"query","required":true},{"type":"string","fieldNumber":2,"description":"The password for login in clear text","name":"password","in":"query","required":true}],
+    "GetUserLogout" : null,
+    "DeleteUserUsername" : [{"type":"string","fieldNumber":1,"description":"The name that needs to be deleted","name":"username","in":"path","required":true}],
+    "GetUserUsername" : [{"type":"string","fieldNumber":1,"description":"The name that needs to be fetched. Use user1 for testing.","name":"username","in":"path","required":true}],
+    "PutUserUsername" : [{"type":"string","fieldNumber":1,"description":"name that need to be updated","name":"username","in":"path","required":true},{"fieldNumber":2,"description":"Updated user object","name":"body","in":"body","required":true,"schema":{"$ref":"#/definitions/User"}}]
+}`
+
 
 var schemaMap map[string][]spec4pb.Parameter
 var schemaMapMap map[string]map[string]spec4pb.Parameter
@@ -585,4 +360,4 @@ func setFloat(val string, bitSize int) (float64, error) {
 		return floatVal, nil
 	}
 	return 0, err
-}`
+}

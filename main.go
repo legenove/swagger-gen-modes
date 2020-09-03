@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/legenove/swagger-gen-modes/gen_modes/gin4grpc_mode"
 	"github.com/legenove/swagger-gen-modes/gen_modes/proto_mode"
 	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/utils"
@@ -20,6 +21,7 @@ func main() {
 		panic(err.Error())
 	}
 	proto_mode.RegistMode(gen)
+	gin4grpc_mode.RegistMode(gen)
 	err = gen.Run()
 }
 
