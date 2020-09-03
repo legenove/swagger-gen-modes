@@ -31,4 +31,37 @@ func (p *Gin4GrpcMode) genRouters() {
 	}
 	g.P("}")
 	g.GenFile()
+
+
+	g = mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName, p.swaggerPub.Md5)
+	g.SetFilename("router.go")
+	//g.Skip()
+	g.P("package ", p.swaggerPub.PackageName)
+	g.P()
+	g.P("import (")
+	g.P("    \"", p.swaggerPub.GoPackageName, "/core\"")
+	g.P("    \"github.com/gin-gonic/gin\"")
+	g.P(")")
+	g.P()
+	g.P("type ApiBaseHandler func(c *gin.Context) (int, interface{})")
+	g.P()
+	g.P(`func decoratorHandler(handler ApiBaseHandler, decors ...core.HandlerDecorator) gin.HandlerFunc {
+	apiFunc := func(c *gin.Context) {
+		code, obj := handler(c)
+		if obj != nil {
+			c.JSON(code, obj)
+		} else {
+			c.Status(code)
+		}
+	}
+	for i := range decors {
+		d := decors[len(decors)-1-i] // iterate in reverse
+		apiFunc = d(apiFunc)
+	}
+	return apiFunc
+}
+`)
+	g.GenFile()
+
+
 }

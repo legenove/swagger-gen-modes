@@ -7,7 +7,7 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/json-iterator/go v1.1.10
 	github.com/legenove/spec4pb v0.0.4-alpha
-	github.com/legenove/utils v0.0.0-20200724081548-f533644e1822
+	github.com/legenove/utils v0.0.0-20200903023119-a6d42e758182
 	google.golang.org/grpc v1.31.1
 	gopkg.in/yaml.v2 v2.3.0
 )

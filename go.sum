@@ -49,6 +49,8 @@ github.com/legenove/spec4pb v0.0.4-alpha h1:5CRfe3RRW/lb9JtdMkGeG0ltN9o3Pc8gMNQI
 github.com/legenove/spec4pb v0.0.4-alpha/go.mod h1:Kyhu6xsC5TV5s0CjS7BLIpv8+dyR0rEpy7JbB+t8L30=
 github.com/legenove/utils v0.0.0-20200724081548-f533644e1822 h1:cYWTuS1sLWT5qUDOtQ49hHHrrilfElGRRxCdgNxMeKs=
 github.com/legenove/utils v0.0.0-20200724081548-f533644e1822/go.mod h1:LU8q6GHxhwMIOe1AEPSASOIEoFla2d7ejICp8bVYuqs=
+github.com/legenove/utils v0.0.0-20200903023119-a6d42e758182 h1:BDZDEguO5i18HKMWvBSDxRHP0kslKNnzjXKedFh08Rs=
+github.com/legenove/utils v0.0.0-20200903023119-a6d42e758182/go.mod h1:LU8q6GHxhwMIOe1AEPSASOIEoFla2d7ejICp8bVYuqs=
 github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
 github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e h1:hB2xlXdHp/pmPZq0y3QnmWAArdw9PqbmotexnWx/FU8=
 github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=

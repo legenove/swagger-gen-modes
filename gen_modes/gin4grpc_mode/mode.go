@@ -8,24 +8,30 @@ import (
 
 const ModeName = "gin4grpc_mode"
 
-func RegistMode(gen *swagger_gen.SwaggerGenerator) {
-	gen.AddMode(ModeName, &Gin4GrpcMode{})
+func RegistMode(gen *swagger_gen.SwaggerGenerator, outPath ...string) {
+	op := ""
+	if len(outPath) > 0 {
+		op = outPath[0]
+	}
+	gen.AddMode(ModeName, &Gin4GrpcMode{outPath: op})
 }
 
 type Gin4GrpcMode struct {
 	sync.Mutex
-	swaggerPub  *mode_pub.SwaggerPub
-	outPath     string
-	services    sortServices
+	swaggerPub *mode_pub.SwaggerPub
+	outPath    string
+	services   sortServices
 }
 
 func (p *Gin4GrpcMode) New() mode_pub.ModeGenInterface {
-	return &Gin4GrpcMode{}
+	return &Gin4GrpcMode{outPath: p.outPath}
 }
 
 func (p *Gin4GrpcMode) GenFile(outpath string, swaggerPub *mode_pub.SwaggerPub) error {
 	p.swaggerPub = swaggerPub
-	p.outPath = outpath
+	if p.outPath == "" {
+		p.outPath = outpath
+	}
 	p.prepareServices()
 	wg := sync.WaitGroup{}
 	wg.Add(4)
