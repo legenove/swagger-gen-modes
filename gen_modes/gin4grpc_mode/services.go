@@ -3,7 +3,7 @@ package gin4grpc_mode
 import (
 	"github.com/legenove/spec4pb"
 	"github.com/legenove/swagger-gen-modes/gen_modes/common"
-	"github.com/legenove/swagger-gen-modes/swagger_gen"
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 	"github.com/legenove/utils"
 	"regexp"
 	"sort"
@@ -113,7 +113,7 @@ func (p *Gin4GrpcMode) analyseReply(response *spec4pb.Responses) bool {
 }
 
 func (p *Gin4GrpcMode) genServices() {
-	g := swagger_gen.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/services", p.swaggerPub.Md5)
+	g := mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/services", p.swaggerPub.Md5)
 	g.SetFilename("base.go")
 	g.P("package services")
 	g.P()
@@ -130,7 +130,7 @@ func (p *Gin4GrpcMode) genServices() {
 	g.P("}")
 	g.GenFile()
 	for _, s := range p.services {
-		g = swagger_gen.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/services", p.swaggerPub.Md5)
+		g = mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/services", p.swaggerPub.Md5)
 		g.SetFilename(s.FuncName + ".go")
 		g.P("package services")
 		g.P()

@@ -2,9 +2,9 @@ package proto_mode
 
 import (
 	"fmt"
-	"github.com/legenove/swagger-gen-modes/gen_modes/common"
-	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/spec4pb"
+	"github.com/legenove/swagger-gen-modes/gen_modes/common"
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 	"github.com/legenove/utils"
 	"strings"
 	"sync"
@@ -30,7 +30,7 @@ func (p *ProtoMode) prepareServices() {
 
 func (p *ProtoMode) prepareService(pth, method string, operation *spec4pb.Operation) {
 	serviceName := common.UriPathToName(pth)
-	g := &swagger_gen.BufGenerator{}
+	g := &mode_pub.BufGenerator{}
 	g.P("  // ", pth, " | ", method)
 	g.Pl("  // operationId: ", operation.ID)
 	if operation.Summary != "" {
@@ -60,11 +60,11 @@ func (p *ProtoMode) prepareService(pth, method string, operation *spec4pb.Operat
 			fmt.Sprintf("%d:%s", common.OptLocationMap["service"], serviceName),
 			common.OptMethodMap[method],
 			method + serviceName,
-		g},
+			g},
 	)
 }
 
-func (p *ProtoMode) genServices(g swagger_gen.BufGenInterface) {
+func (p *ProtoMode) genServices(g mode_pub.BufGenInterface) {
 	g.P("// Services")
 	g.P(utils.ConcatenateStrings("service ", strings.Title(p.swaggerPub.PackageName), " {"))
 	p.serviceGenOpt.MergeG(g)

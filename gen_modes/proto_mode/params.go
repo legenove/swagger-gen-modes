@@ -3,6 +3,7 @@ package proto_mode
 import (
 	"fmt"
 	"github.com/legenove/swagger-gen-modes/gen_modes/common"
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/spec4pb"
 	"github.com/legenove/utils"
@@ -29,7 +30,7 @@ func (p *ProtoMode) analyseParams(name string, method, part string, params []spe
 	}
 	location := fmt.Sprintf("%d:%s", common.OptLocationMap[part], utils.ConcatenateStrings(name, part))
 	messageName := utils.ConcatenateStrings(method, name, part)
-	g := &swagger_gen.BufGenerator{}
+	g := &mode_pub.BufGenerator{}
 	g.P("message ", messageName, " {")
 	for i, param := range params {
 		if param.In == "header" {
@@ -57,7 +58,7 @@ func (p *ProtoMode) analyseParams(name string, method, part string, params []spe
 	return true
 }
 
-func GPParam(g swagger_gen.BufGenInterface, param spec4pb.Parameter, method, locations, ppath string, p *ProtoMode) {
+func GPParam(g mode_pub.BufGenInterface, param spec4pb.Parameter, method, locations, ppath string, p *ProtoMode) {
 	g.Pl("  ")
 	_type := common.GetPBType(param)
 	switch _type {
@@ -77,7 +78,7 @@ func GPParam(g swagger_gen.BufGenInterface, param spec4pb.Parameter, method, loc
 	GPFieldEnd(g, param.Name, param.FieldNumber, param.Description)
 }
 
-func GPFieldEnd(g swagger_gen.BufGenInterface, name string, fieldNumber int32, description string) {
+func GPFieldEnd(g mode_pub.BufGenInterface, name string, fieldNumber int32, description string) {
 	g.Pl(" ", name, " = ", fieldNumber, ";")
 	if description != "" {
 		g.Pl("  // ", description)
@@ -94,7 +95,7 @@ func FormatRefUrl(s string) string {
 	return res
 }
 
-func GPItem(g swagger_gen.BufGenInterface, items *spec4pb.Items, ppath string) {
+func GPItem(g mode_pub.BufGenInterface, items *spec4pb.Items, ppath string) {
 	_type := common.GetPBType(items)
 	switch _type {
 	case "array":

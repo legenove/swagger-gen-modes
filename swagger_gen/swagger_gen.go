@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-openapi/swag"
 	"github.com/legenove/spec4pb"
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 	"github.com/legenove/utils"
 	"path/filepath"
 	"strings"
@@ -15,11 +16,11 @@ import (
 // swagger 生成器
 type SwaggerGenerator struct {
 	sync.RWMutex
-	outPath        string                      // 输出路径
-	goPackageName  string                      // go package 包名
-	SourceFilePath []string                    // 原始swagger文件地址
-	swaggers       map[string]*spec4pb.Swagger // swagger对象
-	genMode        map[string]ModeGenInterface // 需要生成模版的方法
+	outPath        string                               // 输出路径
+	goPackageName  string                               // go package 包名
+	SourceFilePath []string                             // 原始swagger文件地址
+	swaggers       map[string]*spec4pb.Swagger          // swagger对象
+	genMode        map[string]mode_pub.ModeGenInterface // 需要生成模版的方法
 	Errors         []error
 }
 
@@ -29,7 +30,7 @@ func NewSwaggerGenerator(outPath string, filePath ...string) (*SwaggerGenerator,
 	o.outPath = outPath
 	o.SourceFilePath = make([]string, 0, 16)
 	o.swaggers = make(map[string]*spec4pb.Swagger, 16)
-	o.genMode = make(map[string]ModeGenInterface, 16)
+	o.genMode = make(map[string]mode_pub.ModeGenInterface, 16)
 	err := o.LoadSource(filePath...)
 	return o, err
 }
@@ -59,7 +60,7 @@ func (s *SwaggerGenerator) LoadSource(filePath ...string) error {
 	return nil
 }
 
-func (s *SwaggerGenerator) AddMode(mode string, i ModeGenInterface) error {
+func (s *SwaggerGenerator) AddMode(mode string, i mode_pub.ModeGenInterface) error {
 	s.Lock()
 	if _, ok := s.genMode[mode]; ok {
 		return errors.New("mode already register")
@@ -95,7 +96,7 @@ func (s *SwaggerGenerator) Run() error {
 		for fpath, swagger := range s.swaggers {
 			wg.Add(1)
 			ch <- struct{}{}
-			go func(mod, fpath string, modI ModeGenInterface, swagger *spec4pb.Swagger) {
+			go func(mod, fpath string, modI mode_pub.ModeGenInterface, swagger *spec4pb.Swagger) {
 				key := utils.ConcatenateStrings("GenMode: ", mod, "\nsource path: ", fpath)
 				m := utils.GetMD5Hash(key)
 				fmt.Println("|", m, ": start gen : "+key)
@@ -113,7 +114,7 @@ func (s *SwaggerGenerator) Run() error {
 					<-ch
 				}()
 				fname := filepath.Base(fpath)
-				pub := &SwaggerPub{
+				pub := &mode_pub.SwaggerPub{
 					Swagger:       swagger,
 					PackageName:   strings.Split(fname, ".")[0],
 					Md5:           m,

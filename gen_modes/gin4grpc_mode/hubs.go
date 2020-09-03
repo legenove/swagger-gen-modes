@@ -1,11 +1,12 @@
 package gin4grpc_mode
 
 import (
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 	"github.com/legenove/swagger-gen-modes/swagger_gen"
 )
 
 func (p *Gin4GrpcMode) genHubs() {
-	g := swagger_gen.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/hubs", p.swaggerPub.Md5)
+	g := mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/hubs", p.swaggerPub.Md5)
 	g.SetFilename("gin_hubs.go")
 	g.P("package hubs")
 	g.P("/*")

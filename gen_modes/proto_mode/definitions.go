@@ -2,9 +2,9 @@ package proto_mode
 
 import (
 	"fmt"
-	"github.com/legenove/swagger-gen-modes/gen_modes/common"
-	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/spec4pb"
+	"github.com/legenove/swagger-gen-modes/gen_modes/common"
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 	"sort"
 	"strings"
 )
@@ -30,7 +30,7 @@ func (p *ProtoMode) prepareSecurityDefinitions(definitions spec4pb.SecurityDefin
 }
 
 func GPProperties(p *ProtoMode, definition *spec4pb.Schema, method, locations, name string) {
-	g := &swagger_gen.BufGenerator{}
+	g := &mode_pub.BufGenerator{}
 	var maxNum int32 = 0
 	var fieldSort = SortFieldOpts{}
 	for fieldName, property := range definition.Properties {

@@ -1,7 +1,7 @@
 package proto_mode
 
 import (
-	"github.com/legenove/swagger-gen-modes/swagger_gen"
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 	"github.com/legenove/utils"
 	"sort"
 )
@@ -10,7 +10,7 @@ type BufGenOpt struct {
 	Locations string // reply definations request
 	Method    int    // method
 	Key       string
-	G         swagger_gen.BufGenInterface
+	G         mode_pub.BufGenInterface
 }
 
 type SortBufGenOpts []*BufGenOpt
@@ -25,7 +25,7 @@ func (s SortBufGenOpts) Less(i, j int) bool {
 }
 func (s SortBufGenOpts) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 func (s SortBufGenOpts) Len() int      { return len(s) }
-func (s SortBufGenOpts) MergeG(g swagger_gen.BufGenInterface) {
+func (s SortBufGenOpts) MergeG(g mode_pub.BufGenInterface) {
 	sort.Sort(s)
 	for _, j := range s {
 		if j != nil && len(j.G.GetBytes()) > 0 {

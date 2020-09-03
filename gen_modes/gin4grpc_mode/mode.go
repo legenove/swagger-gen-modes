@@ -1,6 +1,7 @@
 package gin4grpc_mode
 
 import (
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"sync"
 )
@@ -13,12 +14,16 @@ func RegistMode(gen *swagger_gen.SwaggerGenerator) {
 
 type Gin4GrpcMode struct {
 	sync.Mutex
-	swaggerPub  *swagger_gen.SwaggerPub
+	swaggerPub  *mode_pub.SwaggerPub
 	outPath     string
 	services    sortServices
 }
 
-func (p *Gin4GrpcMode) GenFile(outpath string, swaggerPub *swagger_gen.SwaggerPub) error {
+func (p *Gin4GrpcMode) New() mode_pub.ModeGenInterface {
+	return &Gin4GrpcMode{}
+}
+
+func (p *Gin4GrpcMode) GenFile(outpath string, swaggerPub *mode_pub.SwaggerPub) error {
 	p.swaggerPub = swaggerPub
 	p.outPath = outpath
 	p.prepareServices()
@@ -52,14 +57,14 @@ func (p *Gin4GrpcMode) GenFile(outpath string, swaggerPub *swagger_gen.SwaggerPu
 	return nil
 }
 
-func (p *Gin4GrpcMode) GenImportPb(g swagger_gen.BufGenInterface) {
+func (p *Gin4GrpcMode) GenImportPb(g mode_pub.BufGenInterface) {
 	g.P("    pb \"", p.swaggerPub.GoPackageName, "/", p.swaggerPub.PackageName, "/pb\"")
 }
 
-func (p *Gin4GrpcMode) GenImportSchemas(g swagger_gen.BufGenInterface) {
+func (p *Gin4GrpcMode) GenImportSchemas(g mode_pub.BufGenInterface) {
 	g.P("    \"", p.swaggerPub.GoPackageName, "/", p.swaggerPub.PackageName, "/schemas\"")
 }
 
-func (p *Gin4GrpcMode) GenImportServices(g swagger_gen.BufGenInterface) {
+func (p *Gin4GrpcMode) GenImportServices(g mode_pub.BufGenInterface) {
 	g.P("    \"", p.swaggerPub.GoPackageName, "/", p.swaggerPub.PackageName, "/services\"")
 }

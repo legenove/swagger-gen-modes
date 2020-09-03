@@ -1,12 +1,12 @@
 package gin4grpc_mode
 
 import (
-	"github.com/legenove/swagger-gen-modes/swagger_gen"
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 	"strings"
 )
 
 func (p *Gin4GrpcMode) genRouters() {
-	g := swagger_gen.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName, p.swaggerPub.Md5)
+	g := mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName, p.swaggerPub.Md5)
 	g.SetFilename("router_group.go")
 	g.P("/*")
 	g.P("### DO NOT CHANGE THIS FILE")

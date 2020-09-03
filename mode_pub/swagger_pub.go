@@ -1,4 +1,4 @@
-package swagger_gen
+package mode_pub
 
 import (
 	"github.com/legenove/spec4pb"

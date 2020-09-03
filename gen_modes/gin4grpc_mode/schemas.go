@@ -4,12 +4,12 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/legenove/spec4pb"
 	"github.com/legenove/swagger-gen-modes/gen_modes/common"
-	"github.com/legenove/swagger-gen-modes/swagger_gen"
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 	"sort"
 )
 
 func (p *Gin4GrpcMode) genSchemas() {
-	g := swagger_gen.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/schemas", p.swaggerPub.Md5)
+	g := mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/schemas", p.swaggerPub.Md5)
 	g.SetFilename("schemas.go")
 	g.P(schemaHeader)
 	g.P()
@@ -27,8 +27,8 @@ func (p *Gin4GrpcMode) genSchemas() {
 	g.GenFile()
 
 	for _, s := range p.services {
-		g = swagger_gen.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/schemas", p.swaggerPub.Md5)
-		g.SetFilename("schemas"+s.FuncName+".go")
+		g = mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/schemas", p.swaggerPub.Md5)
+		g.SetFilename("schemas" + s.FuncName + ".go")
 		fields := prepareParams(s.Params)
 		g.P("package schemas")
 		g.P()
@@ -48,7 +48,7 @@ func (p *Gin4GrpcMode) genSchemas() {
 
 type paramField struct {
 	fieldName string
-	g         swagger_gen.BufGenInterface
+	g         mode_pub.BufGenInterface
 	imports   map[string]bool
 }
 
@@ -59,7 +59,7 @@ func (s sortParamFields) Less(i, j int) bool {
 }
 func (s sortParamFields) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 func (s sortParamFields) Len() int      { return len(s) }
-func (s sortParamFields) MergeG(g swagger_gen.BufGenInterface) {
+func (s sortParamFields) MergeG(g mode_pub.BufGenInterface) {
 	sort.Sort(s)
 	for _, j := range s {
 		if j != nil && len(j.g.GetBytes()) > 0 {
@@ -67,7 +67,7 @@ func (s sortParamFields) MergeG(g swagger_gen.BufGenInterface) {
 		}
 	}
 }
-func (s sortParamFields) ImportsG(g swagger_gen.BufGenInterface) {
+func (s sortParamFields) ImportsG(g mode_pub.BufGenInterface) {
 	imports := map[string]bool{}
 	for _, j := range s {
 		for i := range j.imports {
@@ -93,7 +93,7 @@ func prepareParams(params []spec4pb.Parameter) sortParamFields {
 }
 
 func prepareParam(param spec4pb.Parameter) *paramField {
-	field := &paramField{param.Name, &swagger_gen.BufGenerator{}, map[string]bool{}}
+	field := &paramField{param.Name, &mode_pub.BufGenerator{}, map[string]bool{}}
 	_type := common.GetGoType(param)
 	goName := common.GetGoName(param.Name)
 	var valType string
@@ -185,7 +185,7 @@ func getQueryVal(field *paramField, goName, valType, _type string, param spec4pb
 	}
 	if param.Default == nil && param.Required == true {
 		field.g.P(" else {")
-		field.g.P("        return nil, errors.New(\""+ param.Name + " required\")")
+		field.g.P("        return nil, errors.New(\"" + param.Name + " required\")")
 		field.g.P("    }")
 	} else {
 		field.g.P()
@@ -223,7 +223,7 @@ func getFormDataVal(field *paramField, goName, valType, _type string, param spec
 	}
 	if param.Default == nil && param.Required == true {
 		field.g.P(" else {")
-		field.g.P("        return nil, errors.New(\""+ param.Name + " required\")")
+		field.g.P("        return nil, errors.New(\"" + param.Name + " required\")")
 		field.g.P("    }")
 	} else {
 		field.g.P()

@@ -1,12 +1,12 @@
 package proto_mode
 
 import (
-	"github.com/legenove/swagger-gen-modes/gen_modes/common"
-	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/spec4pb"
+	"github.com/legenove/swagger-gen-modes/gen_modes/common"
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 )
 
-func GPSchema(g swagger_gen.BufGenInterface, schema *spec4pb.Schema, method, locations ,ppath string, inMap string, p *ProtoMode) {
+func GPSchema(g mode_pub.BufGenInterface, schema *spec4pb.Schema, method, locations ,ppath string, inMap string, p *ProtoMode) {
 	var isMap = false
 	var _inMap = ""
 	// map
@@ -88,23 +88,23 @@ func getNumberType(format string) string {
 	}
 }
 
-func GPInt(g swagger_gen.BufGenInterface, format string, minimum *float64) {
+func GPInt(g mode_pub.BufGenInterface, format string, minimum *float64) {
 	g.Pl(getIntegerType(format, minimum))
 }
 
-func GPNumber(g swagger_gen.BufGenInterface, format string) {
+func GPNumber(g mode_pub.BufGenInterface, format string) {
 	g.Pl(getNumberType(format))
 }
 
-func GPString(g swagger_gen.BufGenInterface) {
+func GPString(g mode_pub.BufGenInterface) {
 	g.Pl("string")
 }
 
-func GPBoolean(g swagger_gen.BufGenInterface) {
+func GPBoolean(g mode_pub.BufGenInterface) {
 	g.Pl("bool")
 }
 
 // 文件类型使用字节形式传输
-func GPFile(g swagger_gen.BufGenInterface) {
+func GPFile(g mode_pub.BufGenInterface) {
 	g.Pl("bytes")
 }

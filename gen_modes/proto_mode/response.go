@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/legenove/spec4pb"
 	"github.com/legenove/swagger-gen-modes/gen_modes/common"
-	"github.com/legenove/swagger-gen-modes/swagger_gen"
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 	"github.com/legenove/utils"
 )
 
@@ -29,7 +29,7 @@ func (p *ProtoMode) analyseReply(name string, method, part string, response *spe
 	location := fmt.Sprintf("%d:%s", common.OptLocationMap[part], name)
 	name = method + name
 	messageName := utils.ConcatenateStrings(name, part)
-	g := &swagger_gen.BufGenerator{}
+	g := &mode_pub.BufGenerator{}
 	g.P("message ", name, part, " {")
 	g.P("  uint32 httpCode = 1;")
 	g.P("  uint32 errorCode = 2;")

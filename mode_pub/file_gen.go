@@ -1,4 +1,4 @@
-package swagger_gen
+package mode_pub
 
 import (
 	"bytes"
@@ -54,7 +54,7 @@ func NewFileGen(outPath string, md5 string) *FileGenerator {
 	return &FileGenerator{
 		outPath: outPath,
 		params:  map[string]interface{}{},
-		md5: md5,
+		md5:     md5,
 	}
 }
 

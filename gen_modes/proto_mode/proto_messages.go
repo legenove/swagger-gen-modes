@@ -1,7 +1,7 @@
 package proto_mode
 
 import (
-	"github.com/legenove/swagger-gen-modes/swagger_gen"
+	"github.com/legenove/swagger-gen-modes/mode_pub"
 )
 
 func (p *ProtoMode) prepareMessages() {
@@ -9,7 +9,7 @@ func (p *ProtoMode) prepareMessages() {
 	p.prepareSecurityDefinitions(p.swaggerPub.Swagger.SecurityDefinitions)
 }
 
-func (p *ProtoMode) genMessages(g swagger_gen.BufGenInterface) {
+func (p *ProtoMode) genMessages(g mode_pub.BufGenInterface) {
 	p.messageGenOpt.MergeG(g)
 	if p.hasReply {
 		g.P("// Common Reply")
@@ -29,14 +29,14 @@ func (p *ProtoMode) genMessages(g swagger_gen.BufGenInterface) {
 
 
 
-func (p *ProtoMode) genEmpty(g swagger_gen.BufGenInterface) {
+func (p *ProtoMode) genEmpty(g mode_pub.BufGenInterface) {
 	p.hasEmpty = true
 	g.Pl("EmptyMessage")
 }
 
 
 
-func (p *ProtoMode) genReply(g swagger_gen.BufGenInterface)  {
+func (p *ProtoMode) genReply(g mode_pub.BufGenInterface)  {
 	p.hasReply = true
 	g.Pl("CommonReply")
 }
