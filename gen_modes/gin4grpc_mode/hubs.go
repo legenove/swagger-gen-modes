@@ -2,7 +2,6 @@ package gin4grpc_mode
 
 import (
 	"github.com/legenove/swagger-gen-modes/mode_pub"
-	"github.com/legenove/swagger-gen-modes/swagger_gen"
 )
 
 func (p *Gin4GrpcMode) genHubs() {

@@ -2,10 +2,9 @@ package proto_mode
 
 import (
 	"fmt"
+	"github.com/legenove/spec4pb"
 	"github.com/legenove/swagger-gen-modes/gen_modes/common"
 	"github.com/legenove/swagger-gen-modes/mode_pub"
-	"github.com/legenove/swagger-gen-modes/swagger_gen"
-	"github.com/legenove/spec4pb"
 	"github.com/legenove/utils"
 	"strings"
 )
