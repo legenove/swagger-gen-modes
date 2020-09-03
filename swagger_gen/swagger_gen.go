@@ -124,7 +124,7 @@ func (s *SwaggerGenerator) Run() error {
 				if err != nil {
 					s.AddError(err)
 				}
-			}(mod, fpath, modFunc, swagger)
+			}(mod, fpath, modFunc.New(), swagger)
 		}
 	}
 	wg.Wait()
