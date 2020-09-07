@@ -74,3 +74,11 @@ func (p *Gin4GrpcMode) GenImportSchemas(g mode_pub.BufGenInterface) {
 func (p *Gin4GrpcMode) GenImportServices(g mode_pub.BufGenInterface) {
 	g.P("    \"", p.swaggerPub.GoPackageName, "/", p.swaggerPub.PackageName, "/services\"")
 }
+
+func (p *Gin4GrpcMode) GenDoNotChange(g mode_pub.BufGenInterface) {
+	g.P(`/*
+### DO NOT CHANGE THIS FILE
+### The code is auto generated, your change will be overwritten by
+### code generating.
+*/`)
+}

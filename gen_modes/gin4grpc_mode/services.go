@@ -16,6 +16,7 @@ type service struct {
 	Method     string
 	PathName   string
 	FuncName   string
+	SFuncName  string // 首字母小写的funcname
 	ReqName    string
 	ReplyName  string
 	Params     []spec4pb.Parameter
@@ -79,6 +80,7 @@ func (p *Gin4GrpcMode) prepareService(pth, method string, operation *spec4pb.Ope
 			Method:     method,
 			PathName:   pth,
 			FuncName:   utils.ConcatenateStrings(method, serviceName),
+			SFuncName:  utils.ConcatenateStrings(strings.ToLower(method), serviceName),
 			ReqName:    reqName,
 			ReplyName:  replyName,
 			Params:     operation.Parameters,
@@ -114,10 +116,13 @@ func (p *Gin4GrpcMode) analyseReply(response *spec4pb.Responses) bool {
 
 func (p *Gin4GrpcMode) genServices() {
 	g := mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/services", p.swaggerPub.Md5)
-	g.SetFilename("base.go")
+	g.SetFilename("a_base.go")
+	p.GenDoNotChange(g)
 	g.P("package services")
 	g.P()
 	g.P("import (")
+	g.P("    \"context\"")
+	g.P()
 	p.GenImportPb(g)
 	g.P(")")
 	g.P()
@@ -125,32 +130,93 @@ func (p *Gin4GrpcMode) genServices() {
 	g.P("type ", p.swaggerPub.PackageName, "Server struct {")
 	g.P("  pb.Unimplemented", strings.Title(p.swaggerPub.PackageName), "Server")
 	g.P("}")
-	g.P("func NewServer() *",p.swaggerPub.PackageName,"Server{")
-	g.P("    return &",p.swaggerPub.PackageName,"Server{}")
+	g.P("func NewServer() *", p.swaggerPub.PackageName, "Server{")
+	g.P("    return &", p.swaggerPub.PackageName, "Server{}")
 	g.P("}")
-	g.GenFile()
-	for _, s := range p.services {
-		g = mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/services", p.swaggerPub.Md5)
-		g.SetFilename(s.FuncName + ".go")
-		g.P("package services")
-		g.P()
-		g.P("import (")
-		g.P("    \"context\"")
-		p.GenImportPb(g)
-		g.P("    \"fmt\"")
-		g.P(")")
-		g.P()
-		//func (*V1Server) DeleteTestPetId(ctx context.Context, req *pb.DeleteTestPetIdRequest) (*pb.CommonReply, error) {
-		//
-		//	return nil, nil
-		//}
+	g.P()
 
-		g.P("func (*", p.swaggerPub.PackageName, "Server) ", s.FuncName,
-			"(ctx context.Context, req *pb.", s.ReqName, ") (*pb.", s.ReplyName, ", error) {")
-		g.P("    fmt.Println(\"in\", req)")
-		g.P("    return nil, nil")
-		g.P("}")
-		g.GenFile()
+	gd := mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/services", p.swaggerPub.Md5)
+	gd.SetFilename("a_decorator.go")
+	gd.P(decoratorFile)
+	gd.GenFile()
+	
+	for _, s := range p.services {
+		gs := mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/services", p.swaggerPub.Md5)
+		gs.SetFilename(s.FuncName + ".go")
+		var mapper = map[string]interface{}{
+			"packageName": p.swaggerPub.PackageName,
+			"funcName":    s.FuncName,
+			"reqName":     s.ReqName,
+			"replyName":   s.ReplyName,
+			"sFuncName":   s.SFuncName,
+		}
+		gs.P("package services")
+		gs.P()
+		gs.P("import (")
+		gs.P("    \"context\"")
+		gs.P("    \"fmt\"")
+		gs.P()
+		p.GenImportPb(gs)
+		gs.P("    \"github.com/legenove/server-sdk-go/grpccore\"")
+		gs.P(")")
+		gs.P()
+		
+		g.P(FormatByKey(serverDecoratorHandle, mapper))
+		gs.P(FormatByKey(serverFuncHandle, mapper))
+		gs.GenFile()
 	}
+	g.GenFile()
 
 }
+
+var serverDecoratorHandle = `func (s *{{.packageName}}Server) {{.funcName}}(ctx context.Context, req *pb.{{.reqName}}) (*pb.{{.replyName}}, error) {
+	res, err := {{.sFuncName}}Handler(ctx, req)
+	var _r = res.(*pb.{{.replyName}})
+	if _r == nil {
+		_r = &pb.{{.replyName}}{}
+	}
+	return _r, err
+}
+
+var {{.sFuncName}}Handler = decoratorHandler("{{.sFuncName}}", func(ctx context.Context, req interface{}) (interface{}, error) {
+	return {{.sFuncName}}(ctx, req.(*pb.{{.reqName}}))
+}, {{.sFuncName}}Decors...)
+
+`
+
+var serverFuncHandle = `
+var {{.sFuncName}}Decors = []grpccore.GrpcDecoratorFunc{}
+
+func {{.sFuncName}}(ctx context.Context, req *pb.{{.reqName}}) (*pb.{{.replyName}}, error) {
+	fmt.Println("in", req)
+	return nil, nil
+}
+`
+
+var decoratorFile = `package services
+
+import (
+	"context"
+	"github.com/legenove/server-sdk-go/grpccore"
+	"google.golang.org/grpc"
+)
+
+// 公共方法
+func commonHandler(funcName string, handler grpc.UnaryHandler) grpc.UnaryHandler {
+	return func(ctx context.Context, req interface{}) (interface{}, error) {
+		// before
+		res, err := handler(ctx, req)
+		// after
+		return res, err
+	}
+}
+
+func decoratorHandler(funcName string, handler grpc.UnaryHandler, decors ...grpccore.GrpcDecoratorFunc) grpc.UnaryHandler {
+	for i := range decors {
+		d := decors[len(decors)-1-i] // iterate in reverse
+		handler = d(funcName, handler)
+	}
+	handler = grpccore.LoggerRecoveryHandler(funcName, handler)
+	return commonHandler(funcName, handler)
+}
+`
