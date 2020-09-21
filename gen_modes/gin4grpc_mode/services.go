@@ -139,7 +139,7 @@ func (p *Gin4GrpcMode) genServices() {
 	gd.SetFilename("a_decorator.go")
 	gd.P(decoratorFile)
 	gd.GenFile()
-	
+
 	for _, s := range p.services {
 		gs := mode_pub.NewFileGen(p.outPath+"/"+p.swaggerPub.PackageName+"/services", p.swaggerPub.Md5)
 		gs.SetFilename(s.FuncName + ".go")
@@ -156,11 +156,12 @@ func (p *Gin4GrpcMode) genServices() {
 		gs.P("    \"context\"")
 		gs.P("    \"fmt\"")
 		gs.P()
+		gs.P("    \"github.com/legenove/nano-server-sdk/grpccore\"")
+		gs.P()
 		p.GenImportPb(gs)
-		gs.P("    \"github.com/legenove/server-sdk-go/grpccore\"")
 		gs.P(")")
 		gs.P()
-		
+
 		g.P(FormatByKey(serverDecoratorHandle, mapper))
 		gs.P(FormatByKey(serverFuncHandle, mapper))
 		gs.GenFile()
@@ -197,7 +198,7 @@ var decoratorFile = `package services
 
 import (
 	"context"
-	"github.com/legenove/server-sdk-go/grpccore"
+	"github.com/legenove/nano-server-sdk/grpccore"
 	"google.golang.org/grpc"
 )
 
