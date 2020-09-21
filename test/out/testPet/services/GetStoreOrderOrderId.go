@@ -2,11 +2,18 @@ package services
 
 import (
     "context"
-    pb "/testPet/pb"
     "fmt"
+
+    "github.com/legenove/nano-server-sdk/grpccore"
+
+    pb "github.com/legenove/swagger-gen-modes/test/out/testPet/pb"
 )
 
-func (*testPetServer) GetStoreOrderOrderId(ctx context.Context, req *pb.GetStoreOrderOrderIdRequest) (*pb.GetStoreOrderOrderIdReply, error) {
-    fmt.Println("in", req)
-    return nil, nil
+
+var getStoreOrderOrderIdDecors = []grpccore.GrpcDecoratorFunc{}
+
+func getStoreOrderOrderId(ctx context.Context, req *pb.GetStoreOrderOrderIdRequest) (*pb.GetStoreOrderOrderIdReply, error) {
+	fmt.Println("in", req)
+	return nil, nil
 }
+

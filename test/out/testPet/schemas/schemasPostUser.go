@@ -2,7 +2,7 @@ package schemas
 
 import (
     "github.com/gin-gonic/gin"
-    pb "/testPet/pb"
+    pb "github.com/legenove/swagger-gen-modes/test/out/testPet/pb"
 )
 
 func GetPostUserParams(c *gin.Context, in *pb.PostUserRequest) (map[string][]string, error) {

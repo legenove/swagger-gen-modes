@@ -5,14 +5,22 @@
 */
 package testPet
 import (
-    "/core"
-    "/testPet/hubs"
+    "github.com/legenove/nano-server-sdk/gincore"
+    "github.com/legenove/nano-server-sdk/grpccore"
+    "google.golang.org/grpc"
+
+    "github.com/legenove/swagger-gen-modes/test/out/testPet/hubs"
+    pb "github.com/legenove/swagger-gen-modes/test/out/testPet/pb"
+    "github.com/legenove/swagger-gen-modes/test/out/testPet/services"
 )
 
 const basePath = "/legenove6/test2.0/1.0.0"
 
 func init() {
-    group := core.GetCurrentGroup(basePath)
+    grpccore.RegisterToServer("testPet", func(s *grpc.Server) {
+        pb.RegisterTestPetServer(s, services.NewServer())
+    })
+    group := gincore.GetCurrentGroup(basePath)
     group.POST("/pet", decoratorHandler(hubs.PostPet))
     group.PUT("/pet", decoratorHandler(hubs.PutPet))
     group.GET("/pet/findByStatus", decoratorHandler(hubs.GetPetFindByStatus))

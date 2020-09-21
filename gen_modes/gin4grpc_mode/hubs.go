@@ -35,7 +35,7 @@ func (p *Gin4GrpcMode) genHubs() {
     for k, v := range headers {
         md.Set(k, v...)
     }`)
-		g.P("    ctx := metadata.NewOutgoingContext(servers.GetRestRequestCtx(), headers)")
+		g.P("    ctx := metadata.NewOutgoingContext(servers.GetRestRequestCtx(), md)")
 		g.P("    res, err := server.", s.FuncName, "(ctx, in)")
 		g.P("    if err != nil {")
 		g.P("        panic(err)")

@@ -2,11 +2,18 @@ package services
 
 import (
     "context"
-    pb "/testPet/pb"
     "fmt"
+
+    "github.com/legenove/nano-server-sdk/grpccore"
+
+    pb "github.com/legenove/swagger-gen-modes/test/out/testPet/pb"
 )
 
-func (*testPetServer) GetUserLogin(ctx context.Context, req *pb.GetUserLoginRequest) (*pb.GetUserLoginReply, error) {
-    fmt.Println("in", req)
-    return nil, nil
+
+var getUserLoginDecors = []grpccore.GrpcDecoratorFunc{}
+
+func getUserLogin(ctx context.Context, req *pb.GetUserLoginRequest) (*pb.GetUserLoginReply, error) {
+	fmt.Println("in", req)
+	return nil, nil
 }
+

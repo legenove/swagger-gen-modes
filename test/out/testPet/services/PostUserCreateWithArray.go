@@ -2,11 +2,18 @@ package services
 
 import (
     "context"
-    pb "/testPet/pb"
     "fmt"
+
+    "github.com/legenove/nano-server-sdk/grpccore"
+
+    pb "github.com/legenove/swagger-gen-modes/test/out/testPet/pb"
 )
 
-func (*testPetServer) PostUserCreateWithArray(ctx context.Context, req *pb.PostUserCreateWithArrayRequest) (*pb.CommonReply, error) {
-    fmt.Println("in", req)
-    return nil, nil
+
+var postUserCreateWithArrayDecors = []grpccore.GrpcDecoratorFunc{}
+
+func postUserCreateWithArray(ctx context.Context, req *pb.PostUserCreateWithArrayRequest) (*pb.CommonReply, error) {
+	fmt.Println("in", req)
+	return nil, nil
 }
+

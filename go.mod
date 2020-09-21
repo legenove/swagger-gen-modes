@@ -8,6 +8,7 @@ require (
 	github.com/json-iterator/go v1.1.10
 	github.com/legenove/spec4pb v0.0.4-alpha
 	github.com/legenove/utils v0.0.0-20200903023119-a6d42e758182
-	google.golang.org/grpc v1.31.1
+	golang.org/x/sys v0.0.0-20200116001909-b77594299b42 // indirect
+	google.golang.org/grpc v1.32.0
 	gopkg.in/yaml.v2 v2.3.0
 )
