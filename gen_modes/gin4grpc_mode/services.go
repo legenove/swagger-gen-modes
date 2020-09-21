@@ -217,7 +217,7 @@ func decoratorHandler(funcName string, handler grpc.UnaryHandler, decors ...grpc
 		d := decors[len(decors)-1-i] // iterate in reverse
 		handler = d(funcName, handler)
 	}
-	handler = grpccore.LoggerRecoveryHandler(funcName, handler)
-	return commonHandler(funcName, handler)
+	handler = commonHandler(funcName, handler)
+	return grpccore.LoggerRecoveryHandler(funcName, handler)
 }
 `
