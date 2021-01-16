@@ -3,9 +3,10 @@ package mode_pub
 import (
 	"bytes"
 	"fmt"
-	"github.com/legenove/utils"
 	"os"
 	"path"
+
+	"github.com/legenove/utils"
 )
 
 type BufGenInterface interface {
