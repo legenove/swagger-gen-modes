@@ -26,16 +26,13 @@ func (p *ProtoMode) analyseParams(name string, method, part string, params []spe
 	messageName := utils.ConcatenateStrings(method, name, part)
 	g := &mode_pub.BufGenerator{}
 	g.P("message ", messageName, " {")
-	for i, param := range params {
+	for _, param := range params {
 		if param.In == "header" {
 			continue
 		}
 		if param.FieldNumber == 0 {
-			reoutSwagger = true
-			maxNum = maxNum + 1
-			param.FieldNumber = maxNum
-			// 覆盖原有的值
-			params[i] = param
+			panic(fmt.Sprintf("fildNumber not define: loaction: paths, routerName: %s, method: %s, paramsName: %s",
+				name, method, param.Name))
 		}
 		GPParam(g, param, method, location, messageName, p)
 	}

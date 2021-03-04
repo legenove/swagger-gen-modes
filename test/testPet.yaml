@@ -717,6 +717,7 @@ definitions:
         fieldNumber: 2
         type: string
       password:
+        fieldNumber: 10
         type: string
       phone:
         fieldNumber: 5
@@ -727,8 +728,10 @@ definitions:
         format: int32
         type: integer
       username:
+        fieldNumber: 8
         type: string
       phone1:
+        fieldNumber: 9
         type: string
     type: object
     xml:

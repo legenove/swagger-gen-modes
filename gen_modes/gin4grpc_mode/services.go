@@ -19,6 +19,7 @@ type service struct {
 	SFuncName  string // 首字母小写的funcname
 	ReqName    string
 	ReplyName  string
+	ReplyData  string
 	Params     []spec4pb.Parameter
 }
 
@@ -64,13 +65,13 @@ func (p *Gin4GrpcMode) prepareServices() {
 
 func (p *Gin4GrpcMode) prepareService(pth, method string, operation *spec4pb.Operation) {
 	serviceName := common.UriPathToName(pth)
-	reqName := "EmptyMessage"
-	replyName := "CommonReply"
+	reqName := utils.ConcatenateStrings(method, serviceName, "Request")
+	replyName := utils.ConcatenateStrings(method, serviceName, "Reply")
+	replyData := "CommonReply"
 	if p.analyseParams(operation.Parameters) {
-		reqName = utils.ConcatenateStrings(method, serviceName, "Request")
 	}
 	if p.analyseReply(operation.Responses) {
-		replyName = utils.ConcatenateStrings(method, serviceName, "Reply")
+		replyData = utils.ConcatenateStrings(method, serviceName, "Reply")
 	}
 	p.Lock()
 	defer p.Unlock()
@@ -83,6 +84,7 @@ func (p *Gin4GrpcMode) prepareService(pth, method string, operation *spec4pb.Ope
 			SFuncName:  utils.ConcatenateStrings(strings.ToLower(method), serviceName),
 			ReqName:    reqName,
 			ReplyName:  replyName,
+			ReplyData:  replyData,
 			Params:     operation.Parameters,
 		},
 	)

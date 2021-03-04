@@ -43,7 +43,7 @@ func (p *Gin4GrpcMode) genHubs() {
 		g.P(`    if res == nil {
         return 200, nil
     }`)
-		if s.ReplyName == "CommonReply" {
+		if s.ReplyData == "CommonReply" {
 			g.P("    return int(res.HttpCode), nil")
 		} else {
 			g.P("    return int(res.HttpCode), res.Data")

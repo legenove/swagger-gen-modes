@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/legenove/swagger-gen-modes/gen_modes/gin4grpc_mode"
 	"github.com/legenove/swagger-gen-modes/gen_modes/proto_mode"
@@ -70,12 +71,21 @@ func GinGrpcPb(curpath string, packageName string, protoPath string) {
 	if !utils.PathExists(outPath) {
 		utils.CreateDir(outPath)
 	}
-	err := exec.Command("protoc",
+	cmd := exec.Command("protoc",
 		fmt.Sprintf("--proto_path=%s", protoPath),
 		fmt.Sprintf("--gofast_out=plugins=grpc:%s", outPath),
 		fmt.Sprintf("%s.proto", packageName),
-	).Run()
+	)
+	w := bytes.NewBuffer(nil)
+	cmd.Stderr = w
+	cmd.Stdout = w
+	err := cmd.Start()
 	if err != nil {
-		panic(err.Error())
+		panic(err)
+	}
+	err = cmd.Wait()
+	if err != nil {
+		fmt.Printf("%s\n", string(w.Bytes()))
+		panic(err)
 	}
 }

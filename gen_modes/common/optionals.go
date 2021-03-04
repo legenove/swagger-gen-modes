@@ -8,6 +8,12 @@ var OptLocationMap = map[string]int{
 	"Reply":       2,
 	"Definitions": 3,
 }
+var OptReLocationMap = map[string]string{
+	"0": "Service",
+	"1": "Request",
+	"2": "Reply",
+	"3": "Definitions",
+}
 
 var OptMethodMap = map[string]int{
 	"Get":     0,

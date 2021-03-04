@@ -14,7 +14,7 @@ func (p *ProtoMode) prepareDefinitions(definitions spec4pb.Definitions) {
 	for name, definition := range definitions {
 
 		if len(definition.Type) == 0 || definition.Type.Contains("object") {
-			locations := fmt.Sprintf("%d%s",common.OptLocationMap[common.DefinitionPreName], strings.Title(name))
+			locations := fmt.Sprintf("%d:%s", common.OptLocationMap[common.DefinitionPreName], strings.Title(name))
 			GPProperties(p, &definition, "Get", locations, common.DefinitionPreName+strings.Title(name))
 		} else {
 			panic(" definitions " + name + " must object")
@@ -29,10 +29,29 @@ func (p *ProtoMode) prepareSecurityDefinitions(definitions spec4pb.SecurityDefin
 	//}
 }
 
+func panicErr(errstr, locations, name, fieldName string) {
+	ls := strings.Split(locations, ":")
+	if len(ls) > 1 {
+		panic(fmt.Sprintf("%s: location: %s, objName: %s, name: %s, field: %s",
+			errstr, common.OptReLocationMap[ls[0]], ls[1], name, fieldName))
+	}
+	panic(fmt.Sprintf("%s: loaction: %s,name: %s, field: %s",
+		errstr, locations, name, fieldName))
+}
+
 func GPProperties(p *ProtoMode, definition *spec4pb.Schema, method, locations, name string) {
 	g := &mode_pub.BufGenerator{}
 	var maxNum int32 = 0
 	var fieldSort = SortFieldOpts{}
+	if len(definition.AllOf) > 0 {
+		panicErr("not support allOf", locations, name, "nil")
+	}
+	if len(definition.OneOf) > 0 {
+		panicErr("not support oneOf", locations, name, "nil")
+	}
+	if len(definition.AnyOf) > 0 {
+		panicErr("not support anyOf", locations, name, "nil")
+	}
 	for fieldName, property := range definition.Properties {
 		if property.FieldNumber > maxNum {
 			maxNum = property.FieldNumber
@@ -45,11 +64,7 @@ func GPProperties(p *ProtoMode, definition *spec4pb.Schema, method, locations, n
 		fieldName := field.FieldName
 		property := definition.Properties[fieldName]
 		if property.FieldNumber == 0 {
-			reoutSwagger = true
-			maxNum = maxNum + 1
-			property.FieldNumber = maxNum
-			// 覆盖原有数据
-			definition.Properties[fieldName] = property
+			panicErr("fildNumber not define", locations, name, fieldName)
 		}
 		g.Pl("  ")
 		GPSchema(g, &property, method, locations, name+strings.Title(fieldName), "", p)
