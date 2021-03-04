@@ -8,6 +8,7 @@ import (
 	"github.com/legenove/swagger-gen-modes/swagger_gen"
 	"github.com/legenove/utils"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
@@ -53,6 +54,10 @@ func main() {
 	gin4grpc_mode.RegistMode(gen)
 	proto_mode.RegistMode(gen, protoPath)
 	err = gen.Run()
+	if err != nil {
+		fmt.Printf("\u001B[1;31;40m%s\u001B[0m", err.Error())
+		os.Exit(1)
+	}
 	ps := GetAllProtoFileByPath(protoPath)
 	for pn, pp := range ps {
 		GinGrpcPb(curpath+"/out", pn, pp)
@@ -85,7 +90,7 @@ func GinGrpcPb(curpath string, packageName string, protoPath string) {
 	}
 	err = cmd.Wait()
 	if err != nil {
-		fmt.Printf("%s\n", string(w.Bytes()))
-		panic(err)
+		fmt.Printf("\u001B[1;31;40m%s\n%s\u001B[0m", string(w.Bytes()), err.Error())
+		os.Exit(1)
 	}
 }

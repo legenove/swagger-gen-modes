@@ -593,7 +593,7 @@ definitions:
   Category:
     properties:
       id:
-        fieldNumber: 1
+        fieldNumber: 2
         format: int64
         type: integer
       name:

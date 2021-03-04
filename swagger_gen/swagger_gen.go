@@ -102,13 +102,16 @@ func (s *SwaggerGenerator) Run() error {
 				fmt.Println("|", m, ": start gen : "+key)
 				var err error
 				defer func() {
-					//if err := recover(); err != nil {
-					//	switch err.(type) {
-					//	case error:
-					//		s.AddError(err.(error))
-					//	default:
-					//	}
-					//}
+					if err := recover(); err != nil {
+						fmt.Println(err)
+						switch err.(type) {
+						case error:
+							s.AddError(err.(error))
+						case string:
+							s.AddError(errors.New(err.(string)))
+						default:
+						}
+					}
 					fmt.Println("|", m, ": end gen : "+key)
 					wg.Done()
 					<-ch
