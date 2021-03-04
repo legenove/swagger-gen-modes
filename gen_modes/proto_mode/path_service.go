@@ -41,17 +41,11 @@ func (p *ProtoMode) prepareService(pth, method string, operation *spec4pb.Operat
 	}
 	g.P()
 	g.Pl("  rpc ", method, serviceName, " (")
-	if !p.analyseParams(serviceName, method, "Request", operation.Parameters) {
-		p.genEmpty(g)
-	} else {
-		g.Pl(method, serviceName, "Request")
-	}
+	p.analyseParams(serviceName, method, "Request", operation.Parameters)
+	g.Pl(method, serviceName, "Request")
 	g.Pl(") returns (")
-	if !p.analyseReply(serviceName, method, "Reply", operation.Responses) {
-		p.genReply(g)
-	} else {
-		g.Pl(method, serviceName, "Reply")
-	}
+	p.analyseReply(serviceName, method, "Reply", operation.Responses)
+	g.Pl(method, serviceName, "Reply")
 	g.Pl(") {}")
 	p.Lock()
 	defer p.Unlock()

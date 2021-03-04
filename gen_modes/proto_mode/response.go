@@ -23,20 +23,19 @@ func (p *ProtoMode) analyseReply(name string, method, part string, response *spe
 			}
 		}
 	}
-	if schema == nil {
-		return false
-	}
 	location := fmt.Sprintf("%d:%s", common.OptLocationMap[part], name)
 	name = method + name
 	messageName := utils.ConcatenateStrings(name, part)
 	g := &mode_pub.BufGenerator{}
 	g.P("message ", name, part, " {")
 	g.P("  uint32 httpCode = 1;")
-	g.P("  uint32 errorCode = 2;")
-	g.P("  string errorMsg = 3;")
-	g.Pl("  ")
-	GPSchema(g, schema, method, location, name+part+"Data", "", p)
-	GPFieldEnd(g, "data", 15, schema.Description)
+	g.P("  uint32 errCode = 2;")
+	g.P("  string errMsg = 3;")
+	if schema != nil {
+		g.Pl("  ")
+		GPSchema(g, schema, method, location, name+part+"Data", "", p)
+		GPFieldEnd(g, "data", 15, schema.Description)
+	}
 	g.P("}")
 	p.Lock()
 	defer p.Unlock()

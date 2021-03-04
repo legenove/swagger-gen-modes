@@ -13,19 +13,14 @@ import (
 //string name = 1;
 //}
 func (p *ProtoMode) analyseParams(name string, method, part string, params []spec4pb.Parameter) bool {
-	res := false
 	var maxNum int32 = 0
 	for _, param := range params {
 		if param.In == "header" {
 			continue
 		}
-		res = true
 		if param.FieldNumber > maxNum {
 			maxNum = param.FieldNumber
 		}
-	}
-	if !res {
-		return false
 	}
 	location := fmt.Sprintf("%d:%s", common.OptLocationMap[part], utils.ConcatenateStrings(name, part))
 	messageName := utils.ConcatenateStrings(method, name, part)

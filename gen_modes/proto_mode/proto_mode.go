@@ -21,8 +21,6 @@ func RegistMode(gen *swagger_gen.SwaggerGenerator, outPath ...string) {
 
 type ProtoMode struct {
 	sync.Mutex
-	hasEmpty      bool
-	hasReply      bool
 	outPath       string
 	swaggerPub    *mode_pub.SwaggerPub
 	g             *mode_pub.FileGenerator
