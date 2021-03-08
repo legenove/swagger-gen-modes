@@ -19,7 +19,7 @@ func (p *ProtoMode) prepareServices() {
 				continue
 			}
 			wg.Add(1)
-			go func(pth, method string, operation *spec4pb.Operation) {
+			func(pth, method string, operation *spec4pb.Operation) {
 				defer wg.Done()
 				p.prepareService(pth, method, operation)
 			}(pth, method, operation)
