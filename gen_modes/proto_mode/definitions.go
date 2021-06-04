@@ -47,7 +47,7 @@ func panicErr(errstr, locations, name, fieldName string) {
 
 func GPProperties(p *ProtoMode, definition *spec4pb.Schema, method, locations, name string) {
     g := &mode_pub.BufGenerator{}
-    fieldSort := CheckSchema(definition, locations, name)
+    fieldSort := CheckSchema(definition, locations, name, p.swaggerPub.Swagger)
     g.P("message ", name, " {")
     for _, field := range fieldSort {
         fieldName := field.FieldName
@@ -71,7 +71,7 @@ func GPProperties(p *ProtoMode, definition *spec4pb.Schema, method, locations, n
     )
 }
 
-func CheckSchema(definition *spec4pb.Schema, locations, name string) SortFieldOpts {
+func CheckSchema(definition *spec4pb.Schema, locations, name string, swagger *spec4pb.Swagger) SortFieldOpts {
     var fieldSort = SortFieldOpts{}
     var fieldNumMapper = map[int32]bool{}
     var fieldNameMapper = map[string]bool{}
@@ -83,7 +83,7 @@ func CheckSchema(definition *spec4pb.Schema, locations, name string) SortFieldOp
     }
     var err error
     if len(definition.AllOf) > 0 {
-        fieldSort, err = CheckAllOf(fieldSort, fieldNumMapper, fieldNameMapper, definition.AllOf, p.swaggerPub.Swagger)
+        fieldSort, err = CheckAllOf(fieldSort, fieldNumMapper, fieldNameMapper, definition.AllOf, swagger)
         if err != nil {
             panicErr(err.Error(), locations, name, "allOf")
         }
