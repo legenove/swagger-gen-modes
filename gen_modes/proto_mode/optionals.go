@@ -1,6 +1,7 @@
 package proto_mode
 
 import (
+	"github.com/legenove/spec4pb"
 	"github.com/legenove/swagger-gen-modes/mode_pub"
 	"github.com/legenove/utils"
 	"sort"
@@ -34,18 +35,21 @@ func (s SortBufGenOpts) MergeG(g mode_pub.BufGenInterface) {
 	}
 }
 
+
 type fieldOpt struct {
 	FieldNumber int32
 	FieldName   string
+	Propertie  spec4pb.Schema
 }
 
-func NewFieldOpt(key string, fieldNumber int32) *fieldOpt {
+func NewFieldOpt(key string, fieldNumber int32, propertie spec4pb.Schema) *fieldOpt {
 	if fieldNumber <= 0 {
 		fieldNumber = utils.MaxInt32
 	}
 	return &fieldOpt{
 		FieldNumber: fieldNumber,
 		FieldName:   key,
+		Propertie: propertie,
 	}
 
 }

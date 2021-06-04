@@ -1,6 +1,7 @@
 package proto_mode
 
 import (
+	"errors"
 	"fmt"
 	"github.com/legenove/spec4pb"
 	"github.com/legenove/swagger-gen-modes/gen_modes/common"
@@ -41,22 +42,34 @@ func panicErr(errstr, locations, name, fieldName string) {
 
 func GPProperties(p *ProtoMode, definition *spec4pb.Schema, method, locations, name string) {
 	g := &mode_pub.BufGenerator{}
-	var maxNum int32 = 0
 	var fieldSort = SortFieldOpts{}
-	if len(definition.AllOf) > 0 {
-		panicErr("not support allOf", locations, name, "nil")
-	}
+	var fieldNumMapper = map[int32]bool{}
+	var fieldNameMapper = map[string]bool{}
 	if len(definition.OneOf) > 0 {
 		panicErr("not support oneOf", locations, name, "nil")
 	}
 	if len(definition.AnyOf) > 0 {
 		panicErr("not support anyOf", locations, name, "nil")
 	}
-	for fieldName, property := range definition.Properties {
-		if property.FieldNumber > maxNum {
-			maxNum = property.FieldNumber
+	var err error
+	for i := range definition.AllOf {
+		err = checkDefinition(fieldSort, fieldNumMapper, fieldNameMapper, definition.AllOf[i])
+		if err != nil {
+			panicErr(err.Error(), locations, name, "allOf")
 		}
-		fieldSort = append(fieldSort, NewFieldOpt(fieldName, property.FieldNumber))
+	}
+	for fieldName, property := range definition.Properties {
+		if _, ok := fieldNumMapper[property.FieldNumber]; ok {
+			panicErr(fmt.Sprintf("fieldNumber duplicate: fieldName: %s  ; fieldNumber : %d",
+				fieldName, property.FieldNumber), locations, name, fieldName)
+		}
+		if _, ok := fieldNameMapper[fieldName]; ok {
+			panicErr(fmt.Sprintf("fieldName duplicate: fieldName: %s;",
+				fieldName), locations, name, fieldName)
+		}
+		fieldNumMapper[property.FieldNumber] = true
+		fieldNameMapper[fieldName] = true
+		fieldSort = append(fieldSort, NewFieldOpt(fieldName, property.FieldNumber, definition.Properties[fieldName]))
 	}
 	sort.Sort(fieldSort)
 	g.P("message ", name, " {")
@@ -80,4 +93,21 @@ func GPProperties(p *ProtoMode, definition *spec4pb.Schema, method, locations, n
 			name,
 			g},
 	)
+}
+
+func checkDefinition(fieldSort SortFieldOpts, fieldNumMapper map[int32]bool, fieldNameMapper map[string]bool, definition spec4pb.Schema) error {
+	for fieldName, property := range definition.Properties {
+		if _, ok := fieldNumMapper[property.FieldNumber]; ok {
+			return errors.New(fmt.Sprintf("fieldNumber duplicate: fieldName: %s  ; fieldNumber : %d",
+				fieldName, property.FieldNumber))
+		}
+		if _, ok := fieldNameMapper[fieldName]; ok {
+			return errors.New(fmt.Sprintf("fieldName duplicate: fieldName: %s;",
+				fieldName))
+		}
+		fieldNumMapper[property.FieldNumber] = true
+		fieldNameMapper[fieldName] = true
+		fieldSort = append(fieldSort, NewFieldOpt(fieldName, property.FieldNumber, definition.Properties[fieldName]))
+	}
+	return nil
 }
