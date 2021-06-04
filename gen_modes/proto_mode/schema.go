@@ -7,7 +7,6 @@ import (
 )
 
 func GPSchema(g mode_pub.BufGenInterface, schema *spec4pb.Schema, method, locations ,ppath string, inMap string, p *ProtoMode) {
-	var isMap = false
 	var _inMap = ""
 	// map
 	if schema.AdditionalProperties != nil && schema.AdditionalProperties.Schema != nil {
@@ -15,19 +14,16 @@ func GPSchema(g mode_pub.BufGenInterface, schema *spec4pb.Schema, method, locati
 			// 在map里面则不能为再有key-value
 			panic("to much map in one struct " + ppath)
 		}
-		isMap = true
 		_inMap = "value"
-		g.Pl("map<")
+		g.Pl("map<string,")
 		GPSchema(g, schema.AdditionalProperties.Schema, method, locations ,ppath, "key", p)
-		g.Pl(",")
+		g.Pl(">")
+		return
 	}
 	// allof anyof oneof 禁止使用
 	_type := common.GetPBType(schema)
 	switch _type {
 	case "array":
-		if inMap == "key" {
-			panic("map key cant be array" + ppath)
-		}
 		g.Pl("repeated ")
 		if schema.Items.Schema != nil {
 			GPSchema(g, schema.Items.Schema, method, locations ,ppath+"Arr", _inMap, p)
@@ -37,9 +33,6 @@ func GPSchema(g mode_pub.BufGenInterface, schema *spec4pb.Schema, method, locati
 		}
 		//GPItem(g, name, fieldNumber, schema.Items, ppath+strings.Title(name))
 	case "object":
-		if inMap == "key" {
-			panic("map key cant be struct" + ppath)
-		}
 		if schema.Ref.GetURL() == nil {
 			if len(schema.Properties) != 0 {
 				g.Pl(ppath)
@@ -52,9 +45,6 @@ func GPSchema(g mode_pub.BufGenInterface, schema *spec4pb.Schema, method, locati
 		}
 	default:
 		g.Pl(_type)
-	}
-	if isMap {
-		g.Pl(">")
 	}
 }
 
