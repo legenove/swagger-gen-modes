@@ -3,15 +3,20 @@ package proto_mode
 import (
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
+	"sync"
+
 	"github.com/legenove/spec4pb"
 	"github.com/legenove/swagger-gen-modes/gen_modes/common"
 	"github.com/legenove/swagger-gen-modes/mode_pub"
-	"sort"
-	"strings"
 )
 
-func (p *ProtoMode) prepareDefinitions(definitions spec4pb.Definitions) {
+var definitionsLock = sync.Mutex{}
 
+func (p *ProtoMode) prepareDefinitions(definitions spec4pb.Definitions) {
+	definitionsLock.Lock()
+	definitionsLock.Unlock()
 	for name, definition := range definitions {
 
 		if len(definition.Type) == 0 || definition.Type.Contains("object") {
@@ -53,7 +58,15 @@ func GPProperties(p *ProtoMode, definition *spec4pb.Schema, method, locations, n
 	}
 	var err error
 	for i := range definition.AllOf {
-		err = checkDefinition(fieldSort, fieldNumMapper, fieldNameMapper, definition.AllOf[i])
+		name := definition.AllOf[i].Ref.Ref.GetURL().String()
+		if !strings.HasPrefix(name, "#/definitions/") {
+			panicErr("allOf must in definitions", locations, name, "allOf")
+		}
+		_schema, ok := p.swaggerPub.Swagger.Definitions[strings.ReplaceAll(name, "#/definitions/", "")]
+		if !ok {
+			panicErr("allOf definiions name not found:" + name, locations, name, "allOf")
+		}
+		fieldSort, err = checkDefinition(fieldSort, fieldNumMapper, fieldNameMapper, _schema)
 		if err != nil {
 			panicErr(err.Error(), locations, name, "allOf")
 		}
@@ -75,7 +88,7 @@ func GPProperties(p *ProtoMode, definition *spec4pb.Schema, method, locations, n
 	g.P("message ", name, " {")
 	for _, field := range fieldSort {
 		fieldName := field.FieldName
-		property := definition.Properties[fieldName]
+		property := field.Propertie
 		if property.FieldNumber == 0 {
 			panicErr("fildNumber not define", locations, name, fieldName)
 		}
@@ -95,19 +108,20 @@ func GPProperties(p *ProtoMode, definition *spec4pb.Schema, method, locations, n
 	)
 }
 
-func checkDefinition(fieldSort SortFieldOpts, fieldNumMapper map[int32]bool, fieldNameMapper map[string]bool, definition spec4pb.Schema) error {
+func checkDefinition(fieldSort SortFieldOpts, fieldNumMapper map[int32]bool, fieldNameMapper map[string]bool, definition spec4pb.Schema) (SortFieldOpts, error) {
 	for fieldName, property := range definition.Properties {
 		if _, ok := fieldNumMapper[property.FieldNumber]; ok {
-			return errors.New(fmt.Sprintf("fieldNumber duplicate: fieldName: %s  ; fieldNumber : %d",
+			return nil, errors.New(fmt.Sprintf("fieldNumber duplicate: fieldName: %s  ; fieldNumber : %d",
 				fieldName, property.FieldNumber))
 		}
 		if _, ok := fieldNameMapper[fieldName]; ok {
-			return errors.New(fmt.Sprintf("fieldName duplicate: fieldName: %s;",
+			return nil, errors.New(fmt.Sprintf("fieldName duplicate: fieldName: %s;",
 				fieldName))
 		}
 		fieldNumMapper[property.FieldNumber] = true
 		fieldNameMapper[fieldName] = true
 		fieldSort = append(fieldSort, NewFieldOpt(fieldName, property.FieldNumber, definition.Properties[fieldName]))
 	}
-	return nil
+
+	return fieldSort, nil
 }
