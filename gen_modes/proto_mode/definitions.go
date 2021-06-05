@@ -3,20 +3,16 @@ package proto_mode
 import (
     "errors"
     "fmt"
-    "sort"
-    "strings"
-    "sync"
-
     "github.com/legenove/spec4pb"
     "github.com/legenove/swagger-gen-modes/gen_modes/common"
     "github.com/legenove/swagger-gen-modes/mode_pub"
+    "sort"
+    "strings"
 )
 
-var definitionsLock = sync.Mutex{}
-
 func (p *ProtoMode) prepareDefinitions(definitions spec4pb.Definitions) {
-    definitionsLock.Lock()
-    definitionsLock.Unlock()
+    p.swaggerPub.Lock.Lock()
+    defer p.swaggerPub.Lock.Unlock()
     for name, definition := range definitions {
 
         if len(definition.Type) == 0 || definition.Type.Contains("object") {
