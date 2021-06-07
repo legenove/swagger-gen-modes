@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/legenove/utils"
 )
@@ -67,7 +68,7 @@ func (g *FileGenerator) AddParam(key string, value interface{}) {
 	g.params[key] = value
 }
 
-func (g *FileGenerator) getFullPath() string {
+func (g *FileGenerator) GetFullPath() string {
 	return path.Join(g.outPath, g.filename)
 }
 
@@ -77,13 +78,15 @@ func (g *FileGenerator) GenTmplFile() error {
 }
 
 func (g *FileGenerator) GenFile() error {
-	if !utils.PathExists(g.outPath) {
-		utils.CreateDir(g.outPath)
+	paths, _ := filepath.Split(g.GetFullPath())
+	if !utils.PathExists(paths) {
+		utils.CreateDir(paths)
 	}
-	if utils.FileExists(g.getFullPath()) && g.skip {
+	if utils.FileExists(g.GetFullPath()) && g.skip {
 		return nil
 	}
-	err := g.WriteFile(g.getFullPath(), g.buf.Bytes())
+	if ()
+	err := g.WriteFile(g.GetFullPath(), g.buf.Bytes())
 	return err
 }
 
