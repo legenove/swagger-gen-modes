@@ -119,3 +119,36 @@ func getNumberType(format string) string {
         return "double"
     }
 }
+
+
+func GetParamType(o interface{}) string {
+    s, ok := o.(*spec4pb.Schema)
+    if ok {
+        return GetTypeBySchama(s)
+    }
+    p, ok := o.(spec4pb.Parameter)
+    if ok {
+        return GetTypeByParam(p)
+    }
+    i, ok := o.(*spec4pb.Items)
+    if ok {
+        return GetTypeByItem(i)
+    }
+    return ""
+}
+
+func GetTypeBySchama(schema *spec4pb.Schema) string {
+    var _type string
+    if len(schema.Type) > 0 {
+        _type = schema.Type[0]
+    }
+    return _type
+}
+
+func GetTypeByParam(param spec4pb.Parameter) string {
+    return param.Type
+}
+
+func GetTypeByItem(items *spec4pb.Items) string {
+    return items.Type
+}
