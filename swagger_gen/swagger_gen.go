@@ -90,13 +90,10 @@ func (s *SwaggerGenerator) AddError(err error) {
 
 func (s *SwaggerGenerator) Run() error {
 	s.Errors = make([]error, 0, 16)
-	ch := make(chan struct{}, 5)
 	wg := sync.WaitGroup{}
 	for mod, modFunc := range s.genMode {
 		for fpath, swagger := range s.swaggers {
-			wg.Add(1)
-			ch <- struct{}{}
-			go func(mod, fpath string, modI mode_pub.ModeGenInterface, swagger *spec4pb.Swagger) {
+			func(mod, fpath string, modI mode_pub.ModeGenInterface, swagger *spec4pb.Swagger) {
 				key := utils.ConcatenateStrings("GenMode: ", mod, "\nsource path: ", fpath)
 				m := utils.GetMD5Hash(key)
 				fmt.Println("|", m, ": start gen : "+key)
@@ -114,7 +111,6 @@ func (s *SwaggerGenerator) Run() error {
 					}
 					fmt.Println("|", m, ": end gen : "+key)
 					wg.Done()
-					<-ch
 				}()
 				fname := filepath.Base(fpath)
 				pub := &mode_pub.SwaggerPub{
@@ -130,7 +126,6 @@ func (s *SwaggerGenerator) Run() error {
 			}(mod, fpath, modFunc.New(), swagger)
 		}
 	}
-	wg.Wait()
 	return s.GetError()
 }
 
