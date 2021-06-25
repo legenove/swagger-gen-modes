@@ -90,7 +90,6 @@ func (s *SwaggerGenerator) AddError(err error) {
 
 func (s *SwaggerGenerator) Run() error {
 	s.Errors = make([]error, 0, 16)
-	wg := sync.WaitGroup{}
 	for mod, modFunc := range s.genMode {
 		for fpath, swagger := range s.swaggers {
 			func(mod, fpath string, modI mode_pub.ModeGenInterface, swagger *spec4pb.Swagger) {
@@ -110,7 +109,6 @@ func (s *SwaggerGenerator) Run() error {
 						}
 					}
 					fmt.Println("|", m, ": end gen : "+key)
-					wg.Done()
 				}()
 				fname := filepath.Base(fpath)
 				pub := &mode_pub.SwaggerPub{
