@@ -28,9 +28,9 @@ func (p *ProtoMode) analyseReply(name string, method, part string, response *spe
 	messageName := utils.ConcatenateStrings(name, part)
 	g := &mode_pub.BufGenerator{}
 	g.P("message ", name, part, " {")
-	g.P("  uint32 httpCode = 1;")
-	g.P("  uint32 errCode = 2;")
-	g.P("  string errMsg = 3;")
+	g.P("  uint32 http_code = 1;")
+	g.P("  uint32 err_code = 2;")
+	g.P("  string err_msg = 3;")
 	if schema != nil {
 		g.Pl("  ")
 		GPSchema(g, schema, method, location, name+part+"Data", "", p)
