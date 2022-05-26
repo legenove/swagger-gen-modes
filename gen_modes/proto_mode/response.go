@@ -31,6 +31,7 @@ func (p *ProtoMode) analyseReply(name string, method, part string, response *spe
 	g.P("  uint32 http_code = 1;")
 	g.P("  uint32 err_code = 2;")
 	g.P("  string err_msg = 3;")
+	g.P("  uint32 comp_id = 4;")
 	if schema != nil {
 		g.Pl("  ")
 		GPSchema(g, schema, method, location, name+part+"Data", "", p)
